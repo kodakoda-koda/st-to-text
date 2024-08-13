@@ -25,7 +25,7 @@ def create_data():
     logger.info(f"Create {args.n_data} data")
 
     # Create data
-    st_map = np.zeros((args.n_data, args.range, args.map_size, args.map_size))
+    st_maps = np.zeros((args.n_data, args.range, args.map_size, args.map_size))
     labels = []
 
     for i in range(args.n_data):
@@ -49,15 +49,15 @@ def create_data():
         for j in range(args.map_size):
             for k in range(args.map_size):
                 if (j, k) == spot:
-                    st_map[i, :, j, k] = spot_value
+                    st_maps[i, :, j, k] = spot_value
                 elif j == spot[0] and (k == spot[1] - 1 or k == spot[1] + 1):
-                    st_map[i, :, j, k] = (spot_value + other_value) / 2
+                    st_maps[i, :, j, k] = (spot_value + other_value) / 2
                 elif k == spot[1] and (j == spot[0] - 1 or j == spot[0] + 1):
-                    st_map[i, :, j, k] = (spot_value + other_value) / 2
+                    st_maps[i, :, j, k] = (spot_value + other_value) / 2
                 else:
-                    st_map[i, :, j, k] = other_value
+                    st_maps[i, :, j, k] = other_value
         noise = np.random.randn(args.range, args.map_size, args.map_size) * 0.02
-        st_map[i] += noise
+        st_maps[i] += noise
 
         # Create label text
         labels.append(label_text(spot, spot_change, other_change))
@@ -65,7 +65,7 @@ def create_data():
     logger.info("Data created")
 
     # Save data
-    np.save(args.output_dir + "st_map.npy", st_map)
+    np.save(args.output_dir + "st_maps.npy", st_maps)
     with open(args.output_dir + "labels.json", "w") as f:
         json.dump(labels, f)
 
