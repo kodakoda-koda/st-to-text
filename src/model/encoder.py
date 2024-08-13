@@ -7,7 +7,7 @@ from src.model.embed import Embedding
 from src.model.transformer import TransformerEncoderLayer
 
 
-class GTFormer(nn.Module):
+class GTformer(nn.Module):
     def __init__(
         self,
         n_layers: int,
@@ -17,9 +17,9 @@ class GTFormer(nn.Module):
         dropout: float,
         n_locations: int,
     ):
-        super(GTFormer, self).__init__()
+        super(GTformer, self).__init__()
         self.layers = nn.ModuleList(
-            [GTFormer_block(d_model, n_heads, d_ff, dropout, n_locations, 7) for _ in range(n_layers)]
+            [GTformer_block(d_model, n_heads, d_ff, dropout, n_locations, 7) for _ in range(n_layers)]
         )
 
     def forward(self, demands: Tensor) -> BaseModelOutput:
@@ -35,18 +35,16 @@ class GTFormer(nn.Module):
         return outputs
 
 
-class GTFormer_block(nn.Module):
+class GTformer_block(nn.Module):
     def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float, n_locations: int, hist_days: int):
-        super(GTFormer_block, self).__init__()
+        super(GTformer_block, self).__init__()
         self.t_emb = Embedding(n_locations, d_model, time=True)
-        # self.s_emb = Embedding((hist_days + 1) * 24, d_model, time=False)
         self.s_emb = Embedding(30, d_model, time=True)
 
         self.t_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
         self.s_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
 
         self.t_out = nn.Linear(d_model, n_locations)
-        # self.s_out = nn.Linear(d_model, (hist_days + 1) * 24)
         self.s_out = nn.Linear(d_model, 30)
 
     def forward(self, demands: Tensor) -> Tensor:
