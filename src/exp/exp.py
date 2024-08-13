@@ -36,7 +36,7 @@ def train(model, train_loader, optimizer, scheduler, writer, device, dtype):
     return total_loss / total_samples
 
 
-def eval(model, eval_loader, device, dtype):
+def evaluate(model, eval_loader, device, dtype):
     model.eval()
 
     total_loss = 0

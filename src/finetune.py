@@ -3,16 +3,15 @@ import json
 import os
 
 import numpy as np
-import pandas as pd
 import tokenizers
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from transformers import AutoTokenizer, get_cosine_schedule_with_warmup, set_seed
 
 from src.create_data import create_data
-from src.data2desc.model import Model
-from src.dataset.dataset import CustomDataset, df_to_dict
-from src.exp.exp import eval, train
+from src.dataset.dataset import CustomDataset
+from src.exp.exp import evaluate, train
+from src.model.model import Model
 from src.utils.main_utils import log_arguments, set_logger
 
 
@@ -29,9 +28,6 @@ def main():
     parser.add_argument("--job_id", type=int, default=0)
 
     # Experiment arguments
-    parser.add_argument("--start", type=str, default="2016-01-01 00:00:00")
-    parser.add_argument("--end", type=str, default="2017-01-01 00:00:00")
-    parser.add_argument("--hist_days", type=int, default=7)
     parser.add_argument("--num_epochs", type=int, default=20)
     parser.add_argument("--train_batch_size", type=int, default=2)
     parser.add_argument("--eval_batch_size", type=int, default=4)
@@ -40,14 +36,13 @@ def main():
     # Model arguments
     parser.add_argument("--dtype", type=str, default="bfloat16")
     parser.add_argument("--lm_name", type=str, default="t5-base")
-    parser.add_argument("--inst_max_length", type=int, default=256)
-    parser.add_argument("--decoder_max_length", type=int, default=700)
+    parser.add_argument("--decoder_max_length", type=int, default=64)
     parser.add_argument("--d_model", type=int, default=768)
     parser.add_argument("--n_heads", type=int, default=12)
     parser.add_argument("--d_ff", type=int, default=3072)
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--n_layers", type=int, default=12)
-    parser.add_argument("--n_locations", type=int, default=263)
+    parser.add_argument("--n_locations", type=int, default=100)
 
     args = parser.parse_args()
     log_arguments(args, logger)
@@ -88,8 +83,8 @@ def main():
     with open(args.data_dir + "labels.json", "r") as f:
         labels = json.load(f)
 
-    train_dataset = CustomDataset(st_maps, labels, tokenizer, args.inst_max_length, train_flag=True)
-    val_dataset = CustomDataset(st_maps, labels, tokenizer, args.inst_max_length, train_flag=False)
+    train_dataset = CustomDataset(st_maps, labels, tokenizer, args.decoder_max_length, train_flag=True)
+    val_dataset = CustomDataset(st_maps, labels, tokenizer, args.decoder_max_length, train_flag=False)
 
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.train_batch_size, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.eval_batch_size, shuffle=False)
@@ -106,7 +101,7 @@ def main():
     best_loss = np.inf
     for epoch in range(args.num_epochs):
         train_loss = train(model, train_loader, optimizer, schduler, writer, device, dtype)
-        val_loss = eval(model, val_loader, device, dtype)
+        val_loss = evaluate(model, val_loader, device, dtype)
 
         # Log results
         logger.info("Epoch {} | Train Loss: {:.4f} | Val Loss: {:.4f}".format(epoch + 1, train_loss, val_loss))
