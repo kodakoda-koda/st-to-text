@@ -60,15 +60,19 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float32
-    model = Model(
-        args.n_layers,
-        args.d_model,
-        args.n_heads,
-        args.d_ff,
-        args.dropout,
-        args.n_locations,
-        args.lm_name,
-    ).to(device)
+    model = (
+        Model(
+            args.n_layers,
+            args.d_model,
+            args.n_heads,
+            args.d_ff,
+            args.dropout,
+            args.n_locations,
+            args.lm_name,
+        )
+        .to(device)
+        .to(dtype)
+    )
 
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.lm_name, legacy=False)
@@ -101,8 +105,8 @@ def main():
 
     best_loss = np.inf
     for epoch in range(args.num_epochs):
-        train_loss = train(model, train_loader, optimizer, schduler, writer, device)
-        val_loss = eval(model, val_loader, device)
+        train_loss = train(model, train_loader, optimizer, schduler, writer, device, dtype)
+        val_loss = eval(model, val_loader, device, dtype)
 
         # Log results
         logger.info("Epoch {} | Train Loss: {:.4f} | Val Loss: {:.4f}".format(epoch + 1, train_loss, val_loss))

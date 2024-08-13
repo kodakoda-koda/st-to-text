@@ -1,13 +1,13 @@
 import torch
 
 
-def train(model, train_loader, optimizer, scheduler, writer, device):
+def train(model, train_loader, optimizer, scheduler, writer, device, dtype):
     model.train()
 
     total_loss = 0
     total_samples = 0
     for batch in train_loader:
-        st_maps = batch["st_maps"].to(device)
+        st_maps = batch["st_maps"].to(device).to(dtype)
         inst_input_ids = batch["inst_input_ids"].to(device)
         decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(device)
         decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(device)
@@ -36,14 +36,14 @@ def train(model, train_loader, optimizer, scheduler, writer, device):
     return total_loss / total_samples
 
 
-def eval(model, eval_loader, device):
+def eval(model, eval_loader, device, dtype):
     model.eval()
 
     total_loss = 0
     total_samples = 0
     with torch.no_grad():
         for batch in eval_loader:
-            st_maps = batch["st_maps"].to(device)
+            st_maps = batch["st_maps"].to(device).to(dtype)
             inst_input_ids = batch["inst_input_ids"].to(device)
             decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(device)
             decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(device)

@@ -19,6 +19,7 @@ class TestModel:
     n_locations = 100
     lm_name = "t5-base"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    dtype = torch.bfloat16
 
     st_maps = np.load("./data/st_maps.npy")
     with open("./data/labels.json") as f:
@@ -29,21 +30,25 @@ class TestModel:
     train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 
     batch = next(iter(train_loader))
-    st_maps = batch["st_maps"].to(device)
+    st_maps = batch["st_maps"].to(device).to(dtype)
     inst_input_ids = batch["inst_input_ids"].to(device)
     decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(device)
     decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(device)
     labels = batch["decoder_input_ids"][:, 1:].to(device)
 
-    model = Model(
-        n_layers,
-        d_model,
-        n_heads,
-        d_ff,
-        dropout,
-        n_locations,
-        lm_name,
-    ).to(device)
+    model = (
+        Model(
+            n_layers,
+            d_model,
+            n_heads,
+            d_ff,
+            dropout,
+            n_locations,
+            lm_name,
+        )
+        .to(device)
+        .to(dtype)
+    )
 
     def test_forward(self):
         outputs = self.model(
