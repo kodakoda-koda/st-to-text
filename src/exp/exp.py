@@ -1,9 +1,9 @@
 import torch
 
 
-def train(model, train_loader, optimizer, device):
-
+def train(model, train_loader, optimizer, scheduler, writer, device):
     model.train()
+
     total_loss = 0
     total_samples = 0
     for batch in train_loader:
@@ -18,6 +18,10 @@ def train(model, train_loader, optimizer, device):
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
+        scheduler.step()
+
+        writer.add_scalar("Loss/train", loss.item(), global_step=optimizer.step_num)
+        writer.add_scalar("Learning Rate", scheduler.get_last_lr()[0], global_step=optimizer.step_num)
 
         total_loss += loss.item()
         total_samples += input_ids.size(0)
@@ -26,8 +30,8 @@ def train(model, train_loader, optimizer, device):
 
 
 def eval(model, eval_loader, device):
-
     model.eval()
+
     total_loss = 0
     total_samples = 0
     with torch.no_grad():
