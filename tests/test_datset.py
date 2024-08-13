@@ -22,9 +22,11 @@ class TestDataset:
     def test_getitem(self):
         assert set(self.train_dataset[0].keys()) == {
             "st_maps",
-            "input_ids",
-            "attention_mask",
+            "decoder_input_ids",
+            "decoder_attention_mask",
+            "inst_input_ids",
         }
         assert self.train_dataset[0]["st_maps"].shape == torch.Size([30, 10, 10])
-        assert self.train_dataset[0]["input_ids"].shape == torch.Size([128])
-        assert self.train_dataset[0]["attention_mask"].shape == torch.Size([128])
+        assert self.train_dataset[0]["decoder_input_ids"].shape == torch.Size([128])
+        assert self.train_dataset[0]["decoder_attention_mask"].shape == torch.Size([128])
+        assert self.train_dataset[0]["inst_input_ids"].shape == torch.Size([16])

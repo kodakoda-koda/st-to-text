@@ -5,7 +5,7 @@ from torch import Tensor
 from transformers import T5ForConditionalGeneration
 from transformers.modeling_outputs import Seq2SeqLMOutput
 
-from src.data2desc.encoder import STformer
+from src.data2desc.encoder import GTFormer
 
 
 class Model(nn.Module):
@@ -20,7 +20,7 @@ class Model(nn.Module):
         lm_name: str,
     ):
         super(Model, self).__init__()
-        self.gtformer = STformer(
+        self.gtformer = GTFormer(
             n_layers,
             d_model,
             n_heads,
@@ -45,23 +45,14 @@ class Model(nn.Module):
 
     def forward(
         self,
-        demands: Tensor,
-        time_features: Tensor,
+        st_maps: Tensor,
         inst_input_ids: Tensor,
         decoder_input_ids: Tensor = None,
         decoder_attention_mask: Tensor = None,
         labels: Tensor = None,
     ) -> Seq2SeqLMOutput:
-        """
-        B, T, L, M, N: batch size, time steps, length of text, number of locations, number of time features
-        demands: Taxi demands tensor of shape (B, T, M)
-        time_features: Time features which include month, day, day of week, is holiday, hour and precipitation of shape (B, T, N)
-        ew_input_ids: Tokenized event-weather input ids of shape (B, L)
-        decoder_input_ids: Tokenized decoder input ids of shape (B, L')
-        decoder_attention_mask: Attention mask for decoder of shape (B, L')
-        labels: Tokenized labels of shape (B, L')
-        """
-        pred = self.gtformer(demands, time_features)
+
+        pred = self.gtformer(st_maps)
         pred_emb = self.fn_emb(pred)
 
         encoder_outputs = self.t5.encoder(input_ids=inst_input_ids)
@@ -88,14 +79,7 @@ class Model(nn.Module):
         inst_input_ids: Tensor,
         **kwargs,
     ) -> Tensor:
-        """
-        B, T, L, M, N: batch size, time steps, length of text, number of locations, number of time features
-        demands: (B, T, M)
-        time_features: (B, T, N)
-        inst_input_ids: (B, L)
-        decoder_input_ids: (B, L')
-        decoder_attention_mask: (B, L')
-        """
+
         demands_emb = self.gtformer(demands, time_features)
         demands_emb = self.fn_emb(demands_emb)
 

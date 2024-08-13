@@ -17,8 +17,9 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
         return {
             "st_maps": self.st_maps[idx],
-            "input_ids": self.input_ids[idx],
-            "attention_mask": self.attention_mask[idx],
+            "inst_input_ids": self.inst_input_ids[idx],
+            "decoder_input_ids": self.decoder_input_ids[idx],
+            "decoder_attention_mask": self.decoder_attention_mask[idx],
         }
 
     def __split_tokenize__(self):
@@ -37,5 +38,15 @@ class CustomDataset(Dataset):
             truncation=True,
             return_tensors="pt",
         )
-        self.input_ids = tokenized_labels.input_ids
-        self.attention_mask = tokenized_labels.attention_mask
+        self.decoder_input_ids = tokenized_labels.input_ids
+        self.decoder_attention_mask = tokenized_labels.attention_mask
+
+        inst = ["Generate a caption for the given spatial-temporal data" for _ in range(len(self.st_maps))]
+        tokenized_inst = self.tokenizer.batch_encode_plus(
+            inst,
+            max_length=16,
+            padding="max_length",
+            truncation=True,
+            return_tensors="pt",
+        )
+        self.inst_input_ids = tokenized_inst.input_ids
