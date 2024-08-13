@@ -3,8 +3,8 @@ import torch.nn as nn
 from torch import Tensor
 from transformers.modeling_outputs import BaseModelOutput
 
-from src.data2desc.embed import Embedding
-from src.data2desc.transformer import TransformerEncoderLayer
+from src.model.embed import Embedding
+from src.model.transformer import TransformerEncoderLayer
 
 
 class GTFormer(nn.Module):
@@ -39,13 +39,15 @@ class GTFormer_block(nn.Module):
     def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float, n_locations: int, hist_days: int):
         super(GTFormer_block, self).__init__()
         self.t_emb = Embedding(n_locations, d_model, time=True)
-        self.s_emb = Embedding((hist_days + 1) * 24, d_model, time=False)
+        # self.s_emb = Embedding((hist_days + 1) * 24, d_model, time=False)
+        self.s_emb = Embedding(30, d_model, time=True)
 
         self.t_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
         self.s_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
 
         self.t_out = nn.Linear(d_model, n_locations)
-        self.s_out = nn.Linear(d_model, (hist_days + 1) * 24)
+        # self.s_out = nn.Linear(d_model, (hist_days + 1) * 24)
+        self.s_out = nn.Linear(d_model, 30)
 
     def forward(self, demands: Tensor) -> Tensor:
         """

@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 
 class CustomDataset(Dataset):
     def __init__(self, st_maps, labels, tokenizer, max_length, train_flag=True):
-        self.st_maps = torch.tensor(st_maps)
+        self.st_maps = torch.tensor(st_maps).view(-1, 30, 100).float()
         self.labels = labels
         self.tokenizer = tokenizer
         self.max_length = max_length

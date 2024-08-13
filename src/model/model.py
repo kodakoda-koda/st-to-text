@@ -5,7 +5,7 @@ from torch import Tensor
 from transformers import T5ForConditionalGeneration
 from transformers.modeling_outputs import Seq2SeqLMOutput
 
-from src.data2desc.encoder import GTFormer
+from src.model.encoder import GTFormer
 
 
 class Model(nn.Module):
