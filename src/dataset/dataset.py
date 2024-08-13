@@ -1,15 +1,18 @@
+import torch
 from torch.utils.data import Dataset
 
 
 class CustomDataset(Dataset):
     def __init__(self, st_maps, labels, tokenizer, max_length, train_flag=True):
-        self.st_maps = st_maps
+        self.st_maps = torch.tensor(st_maps)
         self.labels = labels
         self.tokenizer = tokenizer
+        self.max_length = max_length
+        self.train_flag = train_flag
         self.__split_tokenize__()
 
     def __len__(self):
-        return len(self.data)
+        return len(self.st_maps)
 
     def __getitem__(self, idx):
         return {
@@ -30,7 +33,7 @@ class CustomDataset(Dataset):
         tokenized_labels = self.tokenizer.batch_encode_plus(
             labels,
             max_length=self.max_length,
-            padding=True,
+            padding="max_length",
             truncation=True,
             return_tensors="pt",
         )
