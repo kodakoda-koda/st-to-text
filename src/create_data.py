@@ -6,7 +6,7 @@ import random
 
 import numpy as np
 
-from src.utils import fluctuate, label_text
+from src.utils.data_utils import fluctuate, label_text
 
 logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger(__name__)
