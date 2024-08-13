@@ -4,8 +4,10 @@
 .env
 
 # data
+data/*
 
 # logs
+logs/*
 
 # other
 notebook/*.ipynb
