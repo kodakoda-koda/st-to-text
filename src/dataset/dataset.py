@@ -1,24 +1,26 @@
+import argparse
+import json
+import os
+
 import numpy as np
 import torch
 import transformers
 from torch.utils.data import Dataset
 
+from src.dataset.create_data import create_data
+
 
 class CustomDataset(Dataset):
     def __init__(
         self,
-        st_maps: np.ndarray,
-        labels: list[str],
+        args: argparse.Namespace,
         tokenizer: transformers.PreTrainedTokenizer,
-        max_length: int = 64,
         train_flag=True,
     ):
-        self.st_maps = torch.tensor(st_maps).view(-1, 30, 100).float()
-        self.labels = labels
+        self.args = args
         self.tokenizer = tokenizer
-        self.max_length = max_length
         self.train_flag = train_flag
-        self.__split_tokenize__()
+        self.__load_data__()
 
     def __len__(self) -> int:
         return len(self.st_maps)
@@ -31,18 +33,28 @@ class CustomDataset(Dataset):
             "decoder_attention_mask": self.decoder_attention_mask[idx],
         }
 
-    def __split_tokenize__(self):
-        if self.train_flag:
-            self.st_maps = self.st_maps[: int(0.8 * len(self.st_maps))]
-            self.labels = self.labels[: int(0.8 * len(self.labels))]
-        else:
-            self.st_maps = self.st_maps[int(0.8 * len(self.st_maps)) :]
-            self.labels = self.labels[int(0.8 * len(self.labels)) :]
+    def __load_data__(self):
+        if not os.path.exists(self.args.data_dir + "labels.json"):
+            create_data(
+                self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
+            )
 
-        labels = ["<pad>" + label for label in self.labels]
+        st_maps = np.load(self.args.data_dir + "st_maps.npy")
+        with open(self.args.data_dir + "labels.json", "r") as f:
+            labels = json.load(f)
+        inst = ["Generate a caption for the given spatial-temporal data" for _ in range(len(st_maps))]
+
+        if self.train_flag:
+            self.st_maps = st_maps[: int(0.8 * len(st_maps))]
+            labels = labels[: int(0.8 * len(labels))]
+        else:
+            self.st_maps = st_maps[int(0.8 * len(st_maps)) :]
+            labels = labels[int(0.8 * len(labels)) :]
+
+        labels = ["<pad>" + label for label in labels]
         tokenized_labels = self.tokenizer.batch_encode_plus(
             labels,
-            max_length=self.max_length,
+            max_length=self.args.decoder_max_length,
             padding="max_length",
             truncation=True,
             return_tensors="pt",
@@ -50,7 +62,6 @@ class CustomDataset(Dataset):
         self.decoder_input_ids = tokenized_labels.input_ids
         self.decoder_attention_mask = tokenized_labels.attention_mask
 
-        inst = ["Generate a caption for the given spatial-temporal data" for _ in range(len(self.st_maps))]
         tokenized_inst = self.tokenizer.batch_encode_plus(
             inst,
             max_length=16,

@@ -82,17 +82,9 @@ def main():
     newline_token = tokenizers.AddedToken(content="\n", normalized=False)
     tokenizer.add_tokens(list([newline_token]))
 
-    # Load data
-    if not os.path.exists(args.data_dir + "labels.json"):
-        create_data(args.time_range, args.max_fluc_range, args.n_data, args.map_size, args.data_dir)
-
-    logger.info(f"Loading data from {args.data_dir}")
-    st_maps = np.load(args.data_dir + "st_maps.npy")
-    with open(args.data_dir + "labels.json", "r") as f:
-        labels = json.load(f)
-
-    train_dataset = CustomDataset(st_maps, labels, tokenizer, args.decoder_max_length, train_flag=True)
-    val_dataset = CustomDataset(st_maps, labels, tokenizer, args.decoder_max_length, train_flag=False)
+    # Load dataset
+    train_dataset = CustomDataset(args, tokenizer, train_flag=True)
+    val_dataset = CustomDataset(args, tokenizer, train_flag=False)
 
     train_loader = DataLoader(train_dataset, batch_size=args.train_batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=args.eval_batch_size, shuffle=False)
