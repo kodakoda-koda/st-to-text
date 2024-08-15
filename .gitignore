@@ -11,3 +11,4 @@ logs/*
 
 # other
 notebook/*.ipynb
+checkpoint/*

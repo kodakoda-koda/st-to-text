@@ -100,7 +100,7 @@ def main():
 
     best_loss = np.inf
     for epoch in range(args.num_epochs):
-        train_loss = train(model, train_loader, optimizer, schduler, writer, device, dtype)
+        train_loss = train(model, train_loader, optimizer, schduler, writer, epoch, device, dtype)
         val_loss = evaluate(model, val_loader, device, dtype)
 
         # Log results
@@ -112,6 +112,8 @@ def main():
             best_loss = val_loss
 
             logger.info("Saving model with loss: {:.4f}".format(best_loss))
+            if not os.path.exists("./checkpoint"):
+                os.makedirs("./checkpoint")
             torch.save(model.state_dict(), f"./checkpoint/checkpoint.pth")
 
     model.load_state_dict(torch.load(f"./checkpoint/checkpoint.pth"))
