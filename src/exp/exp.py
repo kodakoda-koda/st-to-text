@@ -1,3 +1,5 @@
+from typing import Dict, Tuple
+
 import evaluate
 import torch
 import torch.nn as nn
@@ -6,15 +8,15 @@ from tqdm import tqdm
 
 
 def train(
+    epoch: int,
     model: nn.Module,
     data_loader: torch.utils.data.DataLoader,
     optimizer: torch.optim.Optimizer,
     scheduler: torch.optim.lr_scheduler.LambdaLR,
     writer: torch.utils.tensorboard.SummaryWriter,
-    epoch: int,
     device: torch.device,
     dtype: torch.dtype,
-):
+) -> float:
     model.train()
 
     total_loss = 0
@@ -56,7 +58,7 @@ def eval(
     decoder_max_length: int,
     device: torch.device,
     dtype: torch.dtype,
-):
+) -> Tuple[Dict[str, float], Dict[str, list[str]]]:
     model.eval()
 
     predictions = []

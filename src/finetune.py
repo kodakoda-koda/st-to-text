@@ -5,6 +5,7 @@ import os
 import numpy as np
 import tokenizers
 import torch
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from transformers import AutoTokenizer, get_cosine_schedule_with_warmup, set_seed
 
@@ -86,8 +87,8 @@ def main():
     train_dataset = CustomDataset(st_maps, labels, tokenizer, args.decoder_max_length, train_flag=True)
     val_dataset = CustomDataset(st_maps, labels, tokenizer, args.decoder_max_length, train_flag=False)
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.train_batch_size, shuffle=True)
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.eval_batch_size, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=args.train_batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=args.eval_batch_size, shuffle=False)
 
     # Train and evaluate
     logger.info("Training model")
@@ -100,7 +101,7 @@ def main():
 
     best_score = 0.0
     for epoch in range(args.num_epochs):
-        train_loss = train(model, train_loader, optimizer, schduler, writer, epoch, device, dtype)
+        train_loss = train(epoch, model, train_loader, optimizer, schduler, writer, device, dtype)
         score, generated_text = eval(model, val_loader, tokenizer, args.decoder_max_length, device, dtype)
 
         # Log results

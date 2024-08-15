@@ -1,9 +1,18 @@
+import numpy as np
 import torch
+import transformers
 from torch.utils.data import Dataset
 
 
 class CustomDataset(Dataset):
-    def __init__(self, st_maps, labels, tokenizer, max_length, train_flag=True):
+    def __init__(
+        self,
+        st_maps: np.ndarray,
+        labels: list[str],
+        tokenizer: transformers.PreTrainedTokenizer,
+        max_length: int = 64,
+        train_flag=True,
+    ):
         self.st_maps = torch.tensor(st_maps).view(-1, 30, 100).float()
         self.labels = labels
         self.tokenizer = tokenizer
@@ -11,10 +20,10 @@ class CustomDataset(Dataset):
         self.train_flag = train_flag
         self.__split_tokenize__()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.st_maps)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> dict:
         return {
             "st_maps": self.st_maps[idx],
             "inst_input_ids": self.inst_input_ids[idx],
