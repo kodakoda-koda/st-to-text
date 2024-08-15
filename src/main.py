@@ -13,7 +13,7 @@ from src.dataset.create_data import create_data
 from src.dataset.dataset import CustomDataset
 from src.exp.exp import eval, train
 from src.model.model import Model
-from src.utils.main_utils import log_arguments, set_logger
+from src.utils.main_utils import assert_arguments, log_arguments, set_logger
 
 
 def main():
@@ -52,6 +52,7 @@ def main():
     parser.add_argument("--n_locations", type=int, default=100)
 
     args = parser.parse_args()
+    assert_arguments(args)
     log_arguments(args, logger)
 
     # Set seed

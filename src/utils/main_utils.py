@@ -3,6 +3,16 @@ import logging
 import transformers
 
 
+def assert_arguments(args):
+    assert args.dtype in [
+        "bfloat16",
+        "float32",
+    ], f"dtype should be either 'bfloat16' or 'float32', but got {args.dtype}"
+    assert (
+        args.n_locations == args.map_size**2
+    ), f"n_locations should be equal to map_size ** 2, but got {args.n_locations}"
+
+
 def log_arguments(args, logger):
     logger.info(f"job_id: {args.job_id}")
     logger.info(f"lr: {args.lr}")
