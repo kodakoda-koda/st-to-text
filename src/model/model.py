@@ -74,20 +74,19 @@ class Model(nn.Module):
 
     def generate(
         self,
-        demands: Tensor,
-        time_features: Tensor,
+        st_maps: Tensor,
         inst_input_ids: Tensor,
         **kwargs,
     ) -> Tensor:
 
-        demands_emb = self.gtformer(demands, time_features)
-        demands_emb = self.fn_emb(demands_emb)
+        pred = self.gtformer(st_maps)
+        pred_emb = self.fn_emb(pred)
 
         encoder_outputs = self.t5.encoder(input_ids=inst_input_ids)
 
         encoder_hidden_states = encoder_outputs.last_hidden_state
         encoder_hidden_states = torch.cat(
-            [encoder_hidden_states[:, :-1], demands_emb, encoder_hidden_states[:, -1:]], dim=1
+            [encoder_hidden_states[:, :-1], pred_emb, encoder_hidden_states[:, -1:]], dim=1
         )
         encoder_outputs.last_hidden_state = encoder_hidden_states
 

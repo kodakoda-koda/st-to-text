@@ -10,7 +10,7 @@ from transformers import AutoTokenizer, get_cosine_schedule_with_warmup, set_see
 
 from src.create_data import create_data
 from src.dataset.dataset import CustomDataset
-from src.exp.exp import evaluate, train
+from src.exp.exp import eval, train
 from src.model.model import Model
 from src.utils.main_utils import log_arguments, set_logger
 
@@ -98,29 +98,39 @@ def main():
         optimizer, num_warmup_steps=len(train_loader), num_training_steps=len(train_loader) * args.num_epochs
     )
 
-    best_loss = np.inf
+    best_score = 0.0
     for epoch in range(args.num_epochs):
         train_loss = train(model, train_loader, optimizer, schduler, writer, epoch, device, dtype)
-        val_loss = evaluate(model, val_loader, device, dtype)
+        score, generated_text = eval(model, val_loader, tokenizer, args.decoder_max_length, device, dtype)
 
         # Log results
-        logger.info("Epoch {} | Train Loss: {:.4f} | Val Loss: {:.4f}".format(epoch + 1, train_loss, val_loss))
-        writer.add_scalar("Loss/val", val_loss, global_step=epoch)
+        logger.info(
+            "Epoch {} | Loss: {:.4f} | ROUGE-1: {:.4f} | ROUGE-2: {:.4f} |".format(
+                epoch + 1, train_loss, score["rouge1"], score["rouge2"]
+            )
+        )
+        writer.add_scalar("Val_rouge/rouge-1", score["rouge1"], epoch)
+        writer.add_scalar("Val_rouge/rouge-2", score["rouge2"], epoch)
+        writer.add_scalar("Val_rouge/rouge-L", score["rougeL"], epoch)
+        writer.add_scalar("Val_rouge/rouge-Lsum", score["rougeLsum"], epoch)
 
         # Save checkpoint
-        if val_loss < best_loss:
-            best_loss = val_loss
+        if score["rouge2"] > best_score:
+            best_score = score["rouge2"]
 
-            logger.info("Saving model with loss: {:.4f}".format(best_loss))
+            logger.info("Saving model with score: {:.4f}".format(best_score))
             if not os.path.exists("./checkpoint"):
                 os.makedirs("./checkpoint")
             torch.save(model.state_dict(), f"./checkpoint/checkpoint.pth")
 
+            if not os.path.exists(args.output_dir + f"{args.job_id}"):
+                os.makedirs(args.output_dir + f"{args.job_id}")
+            with open(args.output_dir + f"{args.job_id}/generated_text.json", "w") as f:
+                json.dump(generated_text, f)
+
     model.load_state_dict(torch.load(f"./checkpoint/checkpoint.pth"))
 
     # Save model
-    if not os.path.exists(args.output_dir + f"{args.job_id}"):
-        os.makedirs(args.output_dir + f"{args.job_id}")
     torch.save(model.state_dict(), args.output_dir + f"{args.job_id}/model.pth")
     tokenizer.save_pretrained(args.output_dir + f"{args.job_id}/tokenizer")
 

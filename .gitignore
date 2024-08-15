@@ -12,3 +12,4 @@ logs/*
 # other
 notebook/*.ipynb
 checkpoint/*
+outputs/*
