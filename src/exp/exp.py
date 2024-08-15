@@ -1,9 +1,20 @@
 import evaluate
 import torch
+import torch.nn as nn
+import transformers
 from tqdm import tqdm
 
 
-def train(model, data_loader, optimizer, scheduler, writer, epoch, device, dtype):
+def train(
+    model: nn.Module,
+    data_loader: torch.utils.data.DataLoader,
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler.LambdaLR,
+    writer: torch.utils.tensorboard.SummaryWriter,
+    epoch: int,
+    device: torch.device,
+    dtype: torch.dtype,
+):
     model.train()
 
     total_loss = 0
@@ -38,7 +49,14 @@ def train(model, data_loader, optimizer, scheduler, writer, epoch, device, dtype
     return total_loss / total_samples
 
 
-def eval(model, data_loader, tokenizer, decoder_max_length, device, dtype):
+def eval(
+    model: nn.Module,
+    data_loader: torch.utils.data.DataLoader,
+    tokenizer: transformers.PreTrainedTokenizer,
+    decoder_max_length: int,
+    device: torch.device,
+    dtype: torch.dtype,
+):
     model.eval()
 
     predictions = []
