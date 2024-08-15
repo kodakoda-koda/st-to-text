@@ -28,6 +28,12 @@ def main():
     parser.add_argument("--log_dir", type=str, default="./logs/")
     parser.add_argument("--job_id", type=int, default=0)
 
+    # Data arguments
+    parser.add_argument("--time_range", type=int, default=30)
+    parser.add_argument("--max_fluc_range", type=int, default=10)
+    parser.add_argument("--n_data", type=int, default=500)
+    parser.add_argument("--map_size", type=int, default=10)
+
     # Experiment arguments
     parser.add_argument("--num_epochs", type=int, default=20)
     parser.add_argument("--train_batch_size", type=int, default=2)
@@ -77,7 +83,7 @@ def main():
 
     # Load data
     if not os.path.exists(args.data_dir + "labels.json"):
-        create_data()
+        create_data(args.time_range, args.max_fluc_range, args.n_data, args.map_size, args.data_dir)
 
     logger.info(f"Loading data from {args.data_dir}")
     st_maps = np.load(args.data_dir + "st_maps.npy")
