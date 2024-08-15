@@ -2,4 +2,4 @@
 #SBATCH -J finetune
 #SBATCH -o ./logs/%j/slurm.out
 
-python -m src.finetune --job_id $SLURM_JOB_ID 
+python -m src.main --job_id $SLURM_JOB_ID 
