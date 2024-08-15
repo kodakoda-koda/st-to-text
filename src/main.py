@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from transformers import AutoTokenizer, get_cosine_schedule_with_warmup, set_seed
 
-from src.create_data import create_data
+from src.dataset.create_data import create_data
 from src.dataset.dataset import CustomDataset
 from src.exp.exp import eval, train
 from src.model.model import Model
