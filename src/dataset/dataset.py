@@ -40,6 +40,7 @@ class CustomDataset(Dataset):
             )
 
         st_maps = np.load(self.args.data_dir + "st_maps.npy")
+        st_maps = st_maps.reshape(-1, self.args.time_range, self.args.map_size**2)
         with open(self.args.data_dir + "labels.json", "r") as f:
             labels = json.load(f)
         inst = ["Generate a caption for the given spatial-temporal data" for _ in range(len(st_maps))]
