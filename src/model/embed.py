@@ -20,10 +20,9 @@ class Embedding(nn.Module):
         x: (B, T, C)
         """
         x = self.embedding(x)
-        x = self.positional_encoding(x)
+        x += self.positional_encoding(x)
         if x_coord is not None:
-            x_coord = self.coord_embedding(x_coord)
-            x += x_coord
+            x += self.coord_embedding(x_coord)
         return x
 
 
@@ -43,7 +42,7 @@ class PositionalEncoding(nn.Module):
         return pe
 
     def forward(self, x: Tensor) -> Tensor:
-        return x + self.positional_encoding[: x.size(1)].to(x.dtype)
+        return self.positional_encoding[: x.size(1)].to(x.dtype)
 
 
 class LocationEmbedding(nn.Module):
