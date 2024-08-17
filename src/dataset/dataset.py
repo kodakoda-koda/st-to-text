@@ -28,7 +28,6 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx: int) -> dict:
         return {
             "st_maps": self.st_maps[idx],
-            "inst_input_ids": self.inst_input_ids[idx],
             "decoder_input_ids": self.decoder_input_ids[idx],
             "decoder_attention_mask": self.decoder_attention_mask[idx],
         }
@@ -43,7 +42,6 @@ class CustomDataset(Dataset):
         st_maps = st_maps.reshape(-1, self.args.time_range, self.args.map_size**2)
         with open(self.args.data_dir + "labels.json", "r") as f:
             labels = json.load(f)
-        inst = ["Generate a caption for the given spatial-temporal data" for _ in range(len(st_maps))]
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]
@@ -62,12 +60,3 @@ class CustomDataset(Dataset):
         )
         self.decoder_input_ids = tokenized_labels.input_ids
         self.decoder_attention_mask = tokenized_labels.attention_mask
-
-        tokenized_inst = self.tokenizer.batch_encode_plus(
-            inst,
-            max_length=16,
-            padding="max_length",
-            truncation=True,
-            return_tensors="pt",
-        )
-        self.inst_input_ids = tokenized_inst.input_ids

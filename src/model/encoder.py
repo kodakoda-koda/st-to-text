@@ -19,7 +19,7 @@ class GTformer(nn.Module):
     ):
         super(GTformer, self).__init__()
         self.layers = nn.ModuleList(
-            [GTformer_block(d_model, n_heads, d_ff, dropout, n_locations, 7) for _ in range(n_layers)]
+            [GTformer_block(d_model, n_heads, d_ff, dropout, n_locations) for _ in range(n_layers)]
         )
 
     def forward(self, st_maps: Tensor) -> BaseModelOutput:
@@ -32,11 +32,11 @@ class GTformer(nn.Module):
 
         outputs = st_maps[:, -24:]  # (B, 24, M)
 
-        return outputs
+        return BaseModelOutput(last_hidden_state=outputs, hidden_states=None, attentions=None)
 
 
 class GTformer_block(nn.Module):
-    def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float, n_locations: int, hist_days: int):
+    def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float, n_locations: int):
         super(GTformer_block, self).__init__()
         self.t_emb = Embedding(n_locations, d_model, time=True)
         self.s_emb = Embedding(30, d_model, time=True)

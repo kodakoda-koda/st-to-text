@@ -29,14 +29,12 @@ class Exp_main(Exp_base):
             total_samples = 0
             for i, batch in enumerate(tqdm(train_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                inst_input_ids = batch["inst_input_ids"].to(self.device)
                 decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(self.device)
                 decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
                 outputs = self.model(
                     st_maps=st_maps,
-                    inst_input_ids=inst_input_ids,
                     decoder_input_ids=decoder_input_ids,
                     decoder_attention_mask=decoder_attention_mask,
                     labels=labels,
@@ -95,7 +93,6 @@ class Exp_main(Exp_base):
         with torch.no_grad():
             for i, batch in enumerate(tqdm(data_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                inst_input_ids = batch["inst_input_ids"].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
                 gen_kwargs = {
@@ -107,7 +104,6 @@ class Exp_main(Exp_base):
 
                 outputs = self.model.generate(
                     st_maps=st_maps,
-                    inst_input_ids=inst_input_ids,
                     **gen_kwargs,
                 )
 
