@@ -28,6 +28,7 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx: int) -> dict:
         return {
             "st_maps": self.st_maps[idx],
+            "coords": self.coords[idx],
             "decoder_input_ids": self.decoder_input_ids[idx],
             "decoder_attention_mask": self.decoder_attention_mask[idx],
         }
@@ -40,14 +41,17 @@ class CustomDataset(Dataset):
 
         st_maps = np.load(self.args.data_dir + "st_maps.npy")
         st_maps = st_maps.reshape(-1, self.args.time_range, self.args.map_size**2)
+        coords = np.load(self.args.data_dir + "coords.npy")
         with open(self.args.data_dir + "labels.json", "r") as f:
             labels = json.load(f)
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]
+            self.coords = torch.tensor(coords[: int(0.8 * len(coords))])
             labels = labels[: int(0.8 * len(labels))]
         else:
             self.st_maps = st_maps[int(0.8 * len(st_maps)) :]
+            self.coords = torch.tensor(coords[int(0.8 * len(coords)) :])
             labels = labels[int(0.8 * len(labels)) :]
 
         labels = ["<pad>" + label for label in labels]

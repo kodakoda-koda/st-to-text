@@ -33,12 +33,13 @@ class Model(nn.Module):
     def forward(
         self,
         st_maps: Tensor,
+        coords: Tensor,
         decoder_input_ids: Tensor = None,
         decoder_attention_mask: Tensor = None,
         labels: Tensor = None,
     ) -> Seq2SeqLMOutput:
 
-        encoder_outputs = self.gtformer(st_maps)
+        encoder_outputs = self.gtformer(st_maps, coords)
         encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state)
 
         outputs = self.t5(
@@ -53,10 +54,11 @@ class Model(nn.Module):
     def generate(
         self,
         st_maps: Tensor,
+        coords: Tensor,
         **kwargs,
     ) -> Tensor:
 
-        encoder_outputs = self.gtformer(st_maps)
+        encoder_outputs = self.gtformer(st_maps, coords)
         encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state)
 
         outputs = self.t5.generate(

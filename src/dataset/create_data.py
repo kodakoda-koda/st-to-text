@@ -18,6 +18,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
     # Create data
     st_maps = np.zeros((n_data, time_range, map_size, map_size))
     labels = []
+    coords = []
 
     for i in range(n_data):
         # Randomly generate a spot and change
@@ -25,7 +26,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         fluc_index = np.random.randint(3, time_range - fluc_range - 3)
         start_value = np.random.uniform(0.2, 0.8)
         fluc_list = ["increase", "decrease", "peak", "dip", "flat"]
-        spot = (np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1))
+        spot = [np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1)]
         spot_change = random.choice(fluc_list)
         other_change = random.choice(fluc_list)
 
@@ -34,12 +35,12 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
             other_value = spot_value.copy()
         else:
             spot_value = fluctuate(time_range, fluc_range, fluc_index, start_value, spot_change)
-            other_value = fluctuate(time_range, fluc_range, fluc_index, start_value, spot_change)
+            other_value = fluctuate(time_range, fluc_range, fluc_index, start_value, other_change)
 
         # Replace the spot with the spot value and the surrounding with the other value
         for j in range(map_size):
             for k in range(map_size):
-                if (j, k) == spot:
+                if [j, k] == spot:
                     st_maps[i, :, j, k] = spot_value
                 elif j == spot[0] and (k == spot[1] - 1 or k == spot[1] + 1):
                     st_maps[i, :, j, k] = (spot_value + other_value) / 2
@@ -50,6 +51,9 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         noise = np.random.randn(time_range, map_size, map_size) * 0.02
         st_maps[i] += noise
 
+        # Create coordinates
+        coords.append([[j, k] for j in range(map_size) for k in range(map_size)])
+
         # Create label text
         labels.append(label_text(spot, spot_change, other_change))
 
@@ -59,6 +63,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     np.save(data_dir + "st_maps.npy", st_maps)
+    np.save(data_dir + "coords.npy", np.array(coords))
     with open(data_dir + "labels.json", "w") as f:
         json.dump(labels, f)
 
