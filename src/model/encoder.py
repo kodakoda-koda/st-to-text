@@ -38,8 +38,8 @@ class GTformer(nn.Module):
 class GTformer_block(nn.Module):
     def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float, n_locations: int):
         super(GTformer_block, self).__init__()
-        self.t_emb = Embedding(n_locations, d_model, time=True)
-        self.s_emb = Embedding(30, d_model, time=True)
+        self.t_emb = Embedding(n_locations, d_model)
+        self.s_emb = Embedding(30, d_model)
 
         self.t_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
         self.s_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)

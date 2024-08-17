@@ -28,7 +28,7 @@ def main():
     parser.add_argument("--num_epochs", type=int, default=20)
     parser.add_argument("--train_batch_size", type=int, default=2)
     parser.add_argument("--eval_batch_size", type=int, default=4)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--lr", type=float, default=5e-4)
 
     # Model arguments
     parser.add_argument("--dtype", type=str, default="bfloat16")
