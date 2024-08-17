@@ -26,13 +26,12 @@ class GTformer(nn.Module):
         """
         B, T, L, M, N: batch size, time steps, length of text, number of locations, number of time features
         st_maps: (B, T, M)
+        coords: (B, M, 2)
         """
         for layer in self.layers:
             st_maps = layer(st_maps, coords)
 
-        outputs = st_maps[:, -24:]  # (B, 24, M)
-
-        return BaseModelOutput(last_hidden_state=outputs, hidden_states=None, attentions=None)
+        return BaseModelOutput(last_hidden_state=st_maps, hidden_states=None, attentions=None)
 
 
 class GTformer_block(nn.Module):
@@ -48,10 +47,6 @@ class GTformer_block(nn.Module):
         self.s_out = nn.Linear(d_model, 30)
 
     def forward(self, st_maps: Tensor, coords: Tensor) -> Tensor:
-        """
-        B, T, L, M, N: batch size, time steps, length of text, number of locations, number of time features
-        st_maps: (B, T, M)
-        """
         B, T, _ = st_maps.size()
         t_maps = self.t_emb(st_maps)
         s_maps = self.s_emb(st_maps.permute(0, 2, 1), coords)

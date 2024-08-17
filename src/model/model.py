@@ -17,14 +17,8 @@ class Model(nn.Module):
         n_locations: int,
     ):
         super(Model, self).__init__()
-        self.gtformer = GTformer(
-            n_layers,
-            d_model,
-            n_heads,
-            d_ff,
-            dropout,
-            n_locations,
-        )
+
+        self.gtformer = GTformer(n_layers, d_model, n_heads, d_ff, dropout, n_locations)
         t5_config = T5Config()
         t5_config.decoder_start_token_id = 0
         self.t5 = T5ForConditionalGeneration(t5_config)

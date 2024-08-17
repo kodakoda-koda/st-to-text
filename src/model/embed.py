@@ -5,6 +5,28 @@ import torch.nn as nn
 from torch import Tensor
 
 
+class Embedding(nn.Module):
+    def __init__(self, n_channels: int, d_model: int, n_coord: int = None):
+        super(Embedding, self).__init__()
+        self.d_model = d_model
+        self.embedding = nn.Linear(n_channels, d_model)
+        self.positional_encoding = PositionalEncoding(d_model)
+        if n_coord is not None:
+            self.coord_embedding = LocationEmbedding(n_coord, d_model)
+
+    def forward(self, x: Tensor, x_coord: Tensor = None) -> Tensor:
+        """
+        B, T, C, N: batch size, time steps, number of channels, number of time features
+        x: (B, T, C)
+        """
+        x = self.embedding(x)
+        x = self.positional_encoding(x)
+        if x_coord is not None:
+            x_coord = self.coord_embedding(x_coord)
+            x += x_coord
+        return x
+
+
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model: int, max_len: int = 5000):
         super(PositionalEncoding, self).__init__()
@@ -21,33 +43,7 @@ class PositionalEncoding(nn.Module):
         return pe
 
     def forward(self, x: Tensor) -> Tensor:
-        """
-        B, T, D: batch size, time steps, d_model
-        x: (B, T, D)
-        """
         return x + self.positional_encoding[: x.size(1)].to(x.dtype)
-
-
-class Embedding(nn.Module):
-    def __init__(self, n_channels: int, d_model: int, n_coord: int = None):
-        super(Embedding, self).__init__()
-        self.d_model = d_model
-        self.embedding = nn.Linear(n_channels, d_model)
-        self.positional_encoding = PositionalEncoding(d_model)
-        if n_coord is not None:
-            self.coord_embedding = LocationEmbedding(n_coord, d_model)
-
-    def forward(self, x: Tensor, x_coord: Tensor = None) -> Tensor:
-        """
-        B, T, C, N: batch size, time steps, number of channels, number of time features
-        x: (B, T, C)
-        """
-        x = self.embedding(x)  # (B, T, D)
-        x = self.positional_encoding(x)
-        if x_coord is not None:
-            x_coord = self.coord_embedding(x_coord)
-            x += x_coord
-        return x  # (B, T, D)
 
 
 class LocationEmbedding(nn.Module):
