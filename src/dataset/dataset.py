@@ -3,7 +3,6 @@ import json
 import os
 
 import numpy as np
-import torch
 import transformers
 from torch.utils.data import Dataset
 
@@ -28,28 +27,34 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx: int) -> dict:
         return {
             "st_maps": self.st_maps[idx],
-            "inst_input_ids": self.inst_input_ids[idx],
+            "coords": self.coords[idx],
             "decoder_input_ids": self.decoder_input_ids[idx],
             "decoder_attention_mask": self.decoder_attention_mask[idx],
         }
 
     def __load_data__(self):
-        if not os.path.exists(self.args.data_dir + "labels.json"):
+        if not os.path.exists(self.args.data_dir + "data.json"):
             create_data(
                 self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
             )
 
-        st_maps = np.load(self.args.data_dir + "st_maps.npy")
+        with open(self.args.data_dir + "data.json", "r") as f:
+            data = json.load(f)
+
+        st_maps = np.array(data["st_maps"])
+        coords = np.array(data["coords"])
+        labels = data["labels"]
+
         st_maps = st_maps.reshape(-1, self.args.time_range, self.args.map_size**2)
-        with open(self.args.data_dir + "labels.json", "r") as f:
-            labels = json.load(f)
-        inst = ["Generate a caption for the given spatial-temporal data" for _ in range(len(st_maps))]
+        coords = coords.reshape(-1, self.args.map_size**2, 2)
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]
+            self.coords = coords[: int(0.8 * len(coords))]
             labels = labels[: int(0.8 * len(labels))]
         else:
             self.st_maps = st_maps[int(0.8 * len(st_maps)) :]
+            self.coords = coords[int(0.8 * len(coords)) :]
             labels = labels[int(0.8 * len(labels)) :]
 
         labels = ["<pad>" + label for label in labels]
@@ -62,12 +67,3 @@ class CustomDataset(Dataset):
         )
         self.decoder_input_ids = tokenized_labels.input_ids
         self.decoder_attention_mask = tokenized_labels.attention_mask
-
-        tokenized_inst = self.tokenizer.batch_encode_plus(
-            inst,
-            max_length=16,
-            padding="max_length",
-            truncation=True,
-            return_tensors="pt",
-        )
-        self.inst_input_ids = tokenized_inst.input_ids

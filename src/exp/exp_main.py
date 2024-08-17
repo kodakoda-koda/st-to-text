@@ -29,14 +29,14 @@ class Exp_main(Exp_base):
             total_samples = 0
             for i, batch in enumerate(tqdm(train_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                inst_input_ids = batch["inst_input_ids"].to(self.device)
+                coords = batch["coords"].to(self.device)
                 decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(self.device)
                 decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
                 outputs = self.model(
                     st_maps=st_maps,
-                    inst_input_ids=inst_input_ids,
+                    coords=coords,
                     decoder_input_ids=decoder_input_ids,
                     decoder_attention_mask=decoder_attention_mask,
                     labels=labels,
@@ -52,7 +52,7 @@ class Exp_main(Exp_base):
                 self.writer.add_scalar("Learning Rate", scheduler.get_last_lr()[0], epoch * len(train_loader) + i)
 
                 total_loss += loss.item()
-                total_samples += st_maps.size(0)
+                total_samples += 1
 
             avg_loss = total_loss / total_samples
             eval_score, generated_text = self._eval(val_loader)
@@ -66,8 +66,8 @@ class Exp_main(Exp_base):
             self.writer.add_scalar("Val_rouge/rouge-1", eval_score["rouge1"], epoch)
             self.writer.add_scalar("Val_rouge/rouge-2", eval_score["rouge2"], epoch)
 
-            if eval_score["rouge2"] > best_score:
-                best_score = eval_score["rouge2"]
+            if eval_score["rouge1"] > best_score:
+                best_score = eval_score["rouge1"]
 
                 self.logger.info("Saving model with score: {:.4f}".format(best_score))
                 if not os.path.exists("./checkpoint"):
@@ -95,7 +95,7 @@ class Exp_main(Exp_base):
         with torch.no_grad():
             for i, batch in enumerate(tqdm(data_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                inst_input_ids = batch["inst_input_ids"].to(self.device)
+                coords = batch["coords"].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
                 gen_kwargs = {
@@ -107,7 +107,7 @@ class Exp_main(Exp_base):
 
                 outputs = self.model.generate(
                     st_maps=st_maps,
-                    inst_input_ids=inst_input_ids,
+                    coords=coords,
                     **gen_kwargs,
                 )
 

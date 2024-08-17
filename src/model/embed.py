@@ -1,6 +1,29 @@
+import math
+
 import torch
 import torch.nn as nn
 from torch import Tensor
+
+
+class Embedding(nn.Module):
+    def __init__(self, n_channels: int, d_model: int, n_coord: int = None):
+        super(Embedding, self).__init__()
+        self.d_model = d_model
+        self.embedding = nn.Linear(n_channels, d_model)
+        self.positional_encoding = PositionalEncoding(d_model)
+        if n_coord is not None:
+            self.coord_embedding = LocationEmbedding(n_coord, d_model)
+
+    def forward(self, x: Tensor, x_coord: Tensor = None) -> Tensor:
+        """
+        B, T, C, N: batch size, time steps, number of channels, number of time features
+        x: (B, T, C)
+        """
+        x = self.embedding(x)
+        x += self.positional_encoding(x)
+        if x_coord is not None:
+            x += self.coord_embedding(x_coord)
+        return x
 
 
 class PositionalEncoding(nn.Module):
@@ -19,67 +42,20 @@ class PositionalEncoding(nn.Module):
         return pe
 
     def forward(self, x: Tensor) -> Tensor:
-        """
-        B, T, D: batch size, time steps, d_model
-        x: (B, T, D)
-        """
-        return x + self.positional_encoding[: x.size(1)].to(x.dtype)
+        return self.positional_encoding[: x.size(1)].to(x.dtype)
 
 
-class Embedding(nn.Module):
-    def __init__(self, n_channels: int, d_model: int, time: bool = True):
-        super(Embedding, self).__init__()
-        self.d_model = d_model
-        self.embedding = nn.Linear(n_channels, d_model)
-        self.positional_encoding = PositionalEncoding(d_model)
-        if time:
-            self.time_embedding = TimeFeatureEmbedding(d_model)
+class LocationEmbedding(nn.Module):
+    def __init__(self, n_coord: int, d_model: int):
+        super(LocationEmbedding, self).__init__()
+        self.x_embedding = nn.Embedding(int(math.sqrt(n_coord)), d_model)
+        self.y_embedding = nn.Embedding(int(math.sqrt(n_coord)), d_model)
 
-    def forward(self, x: Tensor, x_time: Tensor = None) -> Tensor:
-        """
-        B, T, C, N: batch size, time steps, number of channels, number of time features
-        x: (B, T, C)
-        x_time: (B, T, N)
-        """
-        x = self.embedding(x)  # (B, T, D)
-        x = self.positional_encoding(x)
-        if x_time is not None:
-            x_time = self.time_embedding(x_time).to(x.dtype)  # (B, T, D)
-            x = x + x_time
-        return x  # (B, T, D)
+    def forward(self, x_coord: Tensor) -> Tensor:
+        x_x = x_coord[:, :, 0].long()
+        x_y = x_coord[:, :, 1].long()
 
+        x_x = self.x_embedding(x_x)
+        x_y = self.y_embedding(x_y)
 
-class TimeFeatureEmbedding(nn.Module):
-    def __init__(self, d_model: int):
-        super(TimeFeatureEmbedding, self).__init__()
-        self.d_model = d_model
-        self.month_embedding = nn.Embedding(13, d_model)
-        self.day_embedding = nn.Embedding(32, d_model)
-        self.weekday_embedding = nn.Embedding(7, d_model)
-        self.holiday_embedding = nn.Embedding(2, d_model)
-        self.hour_embedding = nn.Embedding(24, d_model)
-        self.event_embedding = nn.Embedding(2, d_model)
-        self.rain_embedding = nn.Embedding(2, d_model)
-
-    def forward(self, x_time: Tensor) -> Tensor:
-        """
-        B, T, N: batch size, time steps, number of time features
-        x_time: (B, T, N)
-        """
-        month = x_time[:, :, 0].long()
-        day = x_time[:, :, 1].long()
-        weekday = x_time[:, :, 2].long()
-        holiday = x_time[:, :, 3].long()
-        hour = x_time[:, :, 4].long()
-        is_event = x_time[:, :, 5].long()
-        is_rain = x_time[:, :, 6].long()
-
-        month = self.month_embedding(month)
-        day = self.day_embedding(day)
-        weekday = self.weekday_embedding(weekday)
-        holiday = self.holiday_embedding(holiday)
-        hour = self.hour_embedding(hour)
-        is_event = self.event_embedding(is_event)
-        is_rain = self.rain_embedding(is_rain)
-
-        return month + day + weekday + holiday + hour + is_event + is_rain  # (B, T, D)
+        return x_x + x_y

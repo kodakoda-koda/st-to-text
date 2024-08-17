@@ -27,11 +27,11 @@ class TestDataset:
     def test_getitem(self):
         assert set(self.train_dataset[0].keys()) == {
             "st_maps",
+            "coords",
             "decoder_input_ids",
             "decoder_attention_mask",
-            "inst_input_ids",
         }
         assert self.train_dataset[0]["st_maps"].shape == torch.Size([self.args.time_range, self.args.map_size**2])
+        assert self.train_dataset[0]["coords"].shape == torch.Size([self.args.map_size**2, 2])
         assert self.train_dataset[0]["decoder_input_ids"].shape == torch.Size([self.args.decoder_max_length])
         assert self.train_dataset[0]["decoder_attention_mask"].shape == torch.Size([self.args.decoder_max_length])
-        assert self.train_dataset[0]["inst_input_ids"].shape == torch.Size([16])
