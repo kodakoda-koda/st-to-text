@@ -52,7 +52,7 @@ class Exp_main(Exp_base):
                 self.writer.add_scalar("Learning Rate", scheduler.get_last_lr()[0], epoch * len(train_loader) + i)
 
                 total_loss += loss.item()
-                total_samples += st_maps.size(0)
+                total_samples += 1
 
             avg_loss = total_loss / total_samples
             eval_score, generated_text = self._eval(val_loader)
@@ -66,8 +66,8 @@ class Exp_main(Exp_base):
             self.writer.add_scalar("Val_rouge/rouge-1", eval_score["rouge1"], epoch)
             self.writer.add_scalar("Val_rouge/rouge-2", eval_score["rouge2"], epoch)
 
-            if eval_score["rouge2"] > best_score:
-                best_score = eval_score["rouge2"]
+            if eval_score["rouge1"] > best_score:
+                best_score = eval_score["rouge1"]
 
                 self.logger.info("Saving model with score: {:.4f}".format(best_score))
                 if not os.path.exists("./checkpoint"):

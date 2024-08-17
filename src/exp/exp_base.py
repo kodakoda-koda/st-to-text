@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 
 import tokenizers
@@ -29,12 +30,20 @@ class Exp_base:
             self.args.d_ff,
             self.args.dropout,
             self.args.n_locations,
+            self.args.vocab_size,
         )
         model = model.to(self.device).to(self.dtype)
         return model
 
     def _bulid_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(self.args.lm_name, legacy=False)
+        with open(self.args.data_dir + "data.json", "r") as f:
+            data = json.load(f)
+        tokenizer = tokenizer.train_new_from_iterator(
+            data["labels"][: int(len(data["labels"]) * 0.8)],
+            vocab_size=self.args.vocab_size,
+        )
+
         newline_token = tokenizers.AddedToken(content="\n", normalized=False)
         tokenizer.add_tokens(list([newline_token]))
         return tokenizer
