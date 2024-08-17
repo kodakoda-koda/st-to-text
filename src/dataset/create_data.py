@@ -1,4 +1,3 @@
-import argparse
 import json
 import logging
 import os
@@ -52,7 +51,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         st_maps[i] += noise
 
         # Create coordinates
-        coords.append([[j, k] for j in range(map_size) for k in range(map_size)])
+        coords.append([[[j, k] for k in range(map_size)] for j in range(map_size)])
 
         # Create label text
         labels.append(label_text(spot, spot_change, other_change))
@@ -62,9 +61,8 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
     # Save data
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
-    np.save(data_dir + "st_maps.npy", st_maps)
-    np.save(data_dir + "coords.npy", np.array(coords))
-    with open(data_dir + "labels.json", "w") as f:
-        json.dump(labels, f)
+    data = {"st_maps": st_maps.tolist(), "coords": coords, "labels": labels}
+    with open(data_dir + "data.json", "w") as f:
+        json.dump(data, f)
 
     logger.info("Data saved")

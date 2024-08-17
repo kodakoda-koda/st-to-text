@@ -3,7 +3,6 @@ import json
 import os
 
 import numpy as np
-import torch
 import transformers
 from torch.utils.data import Dataset
 
@@ -34,24 +33,28 @@ class CustomDataset(Dataset):
         }
 
     def __load_data__(self):
-        if not os.path.exists(self.args.data_dir + "labels.json"):
+        if not os.path.exists(self.args.data_dir + "data.json"):
             create_data(
                 self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
             )
 
-        st_maps = np.load(self.args.data_dir + "st_maps.npy")
+        with open(self.args.data_dir + "data.json", "r") as f:
+            data = json.load(f)
+
+        st_maps = np.array(data["st_maps"])
+        coords = np.array(data["coords"])
+        labels = data["labels"]
+
         st_maps = st_maps.reshape(-1, self.args.time_range, self.args.map_size**2)
-        coords = np.load(self.args.data_dir + "coords.npy")
-        with open(self.args.data_dir + "labels.json", "r") as f:
-            labels = json.load(f)
+        coords = coords.reshape(-1, self.args.map_size**2, 2)
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]
-            self.coords = torch.tensor(coords[: int(0.8 * len(coords))])
+            self.coords = coords[: int(0.8 * len(coords))]
             labels = labels[: int(0.8 * len(labels))]
         else:
             self.st_maps = st_maps[int(0.8 * len(st_maps)) :]
-            self.coords = torch.tensor(coords[int(0.8 * len(coords)) :])
+            self.coords = coords[int(0.8 * len(coords)) :]
             labels = labels[int(0.8 * len(labels)) :]
 
         labels = ["<pad>" + label for label in labels]
