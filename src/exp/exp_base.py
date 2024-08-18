@@ -30,7 +30,6 @@ class Exp_base:
             self.args.d_ff,
             self.args.dropout,
             self.args.n_locations,
-            self.args.vocab_size,
         )
         model = model.to(self.device).to(self.dtype)
         return model

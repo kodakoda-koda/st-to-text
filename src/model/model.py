@@ -15,7 +15,6 @@ class Model(nn.Module):
         d_ff: int,
         dropout: float,
         n_locations: int,
-        vocab_size: int,
     ):
         super(Model, self).__init__()
 

@@ -40,7 +40,6 @@ def main():
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--n_layers", type=int, default=6)
     parser.add_argument("--n_locations", type=int, default=100)
-    parser.add_argument("--vocab_size", type=int, default=256)
 
     args = parser.parse_args()
     assert_arguments(args)
