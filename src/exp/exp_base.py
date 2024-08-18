@@ -37,15 +37,6 @@ class Exp_base:
 
     def _bulid_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(self.args.lm_name, legacy=False)
-        with open(self.args.data_dir + "data.json", "r") as f:
-            data = json.load(f)
-        tokenizer = tokenizer.train_new_from_iterator(
-            data["labels"][: int(len(data["labels"]) * 0.8)],
-            vocab_size=self.args.vocab_size,
-        )
-
-        newline_token = tokenizers.AddedToken(content="\n", normalized=False)
-        tokenizer.add_tokens(list([newline_token]))
         return tokenizer
 
     def _get_dataloader(self, train_flag: bool):
