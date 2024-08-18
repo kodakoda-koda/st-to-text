@@ -34,6 +34,8 @@ class Exp_main(Exp_base):
                 decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
+                labels[labels == self.tokenizer.pad_token_id] = -100
+
                 outputs = self.model(
                     st_maps=st_maps,
                     coords=coords,
