@@ -119,8 +119,6 @@ class Exp_main(Exp_base):
                 predictions.extend(pred)
                 references.extend(ref)
 
-        # rouge = evaluate.load("rouge")
-        # score = rouge.compute(predictions=predictions, references=references, tokenizer=self.tokenizer.tokenize)
         score = compute_rouge(predictions, references, self.tokenizer.tokenize)
 
         generated_text = {"predictions": predictions, "references": references}
