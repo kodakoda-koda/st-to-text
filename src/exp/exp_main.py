@@ -9,6 +9,7 @@ from tqdm import tqdm
 from transformers import get_cosine_schedule_with_warmup
 
 from src.exp.exp_base import Exp_base
+from src.utils.exp_utils import compute_rouge
 
 
 class Exp_main(Exp_base):
@@ -118,8 +119,9 @@ class Exp_main(Exp_base):
                 predictions.extend(pred)
                 references.extend(ref)
 
-        rouge = evaluate.load("rouge")
-        score = rouge.compute(predictions=predictions, references=references, tokenizer=self.tokenizer.tokenize)
+        # rouge = evaluate.load("rouge")
+        # score = rouge.compute(predictions=predictions, references=references, tokenizer=self.tokenizer.tokenize)
+        score = compute_rouge(predictions, references, self.tokenizer.tokenize)
 
         generated_text = {"predictions": predictions, "references": references}
 
