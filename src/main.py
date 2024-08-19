@@ -25,9 +25,9 @@ def main():
     parser.add_argument("--map_size", type=int, default=10)
 
     # Experiment arguments
-    parser.add_argument("--num_epochs", type=int, default=20)
-    parser.add_argument("--train_batch_size", type=int, default=2)
-    parser.add_argument("--eval_batch_size", type=int, default=4)
+    parser.add_argument("--num_epochs", type=int, default=100)
+    parser.add_argument("--train_batch_size", type=int, default=8)
+    parser.add_argument("--eval_batch_size", type=int, default=8)
     parser.add_argument("--lr", type=float, default=1e-4)
 
     # Model arguments
