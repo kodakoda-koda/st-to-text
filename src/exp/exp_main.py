@@ -103,9 +103,9 @@ class Exp_main(Exp_base):
 
                 gen_kwargs = {
                     "max_length": self.args.decoder_max_length,
-                    "num_beams": 4,
-                    "early_stopping": True,
-                    "do_sample": True,
+                    # "num_beams": 4,
+                    # "early_stopping": True,
+                    # "do_sample": True,
                 }
 
                 outputs = self.model.generate(
