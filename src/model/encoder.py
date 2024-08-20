@@ -47,15 +47,10 @@ class GTformer_block(nn.Module):
         self.s_out = nn.Linear(d_model, 30)
 
     def forward(self, st_maps: Tensor, coords: Tensor) -> Tensor:
-        # B, T, _ = st_maps.size()
         t_maps = self.t_emb(st_maps)
         s_maps = self.s_emb(st_maps.permute(0, 2, 1), coords)
 
-        # t_mask = torch.ones(B, 1, T, T)
-        # t_mask = torch.triu(t_mask, diagonal=1).bool()
-        # t_mask = t_mask.to(t_maps.device)
-
-        t_maps = self.t_transformer(t_maps)  # , t_mask)
+        t_maps = self.t_transformer(t_maps)
         s_maps = self.s_transformer(s_maps)
 
         t_out = self.t_out(t_maps)

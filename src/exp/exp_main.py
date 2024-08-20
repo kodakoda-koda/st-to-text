@@ -44,7 +44,9 @@ class Exp_main(Exp_base):
                     decoder_attention_mask=decoder_attention_mask,
                     labels=labels,
                 )
-                loss = outputs.loss
+                logits = outputs.logits
+
+                loss = self.loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
 
                 loss.backward()
                 optimizer.step()
