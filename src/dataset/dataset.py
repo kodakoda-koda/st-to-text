@@ -40,13 +40,12 @@ class CustomDataset(Dataset):
 
         with open(self.args.data_dir + "data.json", "r") as f:
             data = json.load(f)
-
         st_maps = np.array(data["st_maps"])
         coords = np.array(data["coords"])
         labels = data["labels"]
 
-        st_maps = st_maps.reshape(-1, self.args.time_range, self.args.map_size**2)
-        coords = coords.reshape(-1, self.args.map_size**2, 2)
+        st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
+        coords = coords.reshape(st_maps.shape[0], -1, 2)
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]

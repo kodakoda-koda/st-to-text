@@ -9,6 +9,7 @@ from tqdm import tqdm
 from transformers import get_cosine_schedule_with_warmup
 
 from src.exp.exp_base import Exp_base
+from src.utils.exp_utils import compute_rouge
 
 
 class Exp_main(Exp_base):
@@ -34,6 +35,8 @@ class Exp_main(Exp_base):
                 decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
+                labels[labels == self.tokenizer.pad_token_id] = -100
+
                 outputs = self.model(
                     st_maps=st_maps,
                     coords=coords,
@@ -41,7 +44,9 @@ class Exp_main(Exp_base):
                     decoder_attention_mask=decoder_attention_mask,
                     labels=labels,
                 )
-                loss = outputs.loss
+                logits = outputs.logits
+
+                loss = self.loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
 
                 loss.backward()
                 optimizer.step()
@@ -100,9 +105,9 @@ class Exp_main(Exp_base):
 
                 gen_kwargs = {
                     "max_length": self.args.decoder_max_length,
-                    "num_beams": 4,
-                    "early_stopping": True,
-                    "do_sample": True,
+                    # "num_beams": 4,
+                    # "early_stopping": True,
+                    # "do_sample": True,
                 }
 
                 outputs = self.model.generate(
@@ -116,8 +121,7 @@ class Exp_main(Exp_base):
                 predictions.extend(pred)
                 references.extend(ref)
 
-        rouge = evaluate.load("rouge")
-        score = rouge.compute(predictions=predictions, references=references, tokenizer=self.tokenizer.tokenize)
+        score = compute_rouge(predictions, references, self.tokenizer.tokenize)
 
         generated_text = {"predictions": predictions, "references": references}
 
