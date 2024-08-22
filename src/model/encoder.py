@@ -45,6 +45,7 @@ class GTformer_block(nn.Module):
 
         self.t_out = nn.Linear(d_model, n_locations)
         self.s_out = nn.Linear(d_model, 30)
+        self.layer_norm = nn.LayerNorm(n_locations)
 
     def forward(self, st_maps: Tensor, coords: Tensor) -> Tensor:
         t_maps = self.t_emb(st_maps)
@@ -55,6 +56,6 @@ class GTformer_block(nn.Module):
 
         t_out = self.t_out(t_maps)
         s_out = self.s_out(s_maps)
-        out = t_out + s_out.permute(0, 2, 1)
+        out = self.layer_norm(t_out + s_out.permute(0, 2, 1))
 
         return out
