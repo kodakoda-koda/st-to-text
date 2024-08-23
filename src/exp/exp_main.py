@@ -105,9 +105,10 @@ class Exp_main(Exp_base):
 
                 gen_kwargs = {
                     "max_length": self.args.decoder_max_length,
-                    # "num_beams": 4,
-                    # "early_stopping": True,
-                    # "do_sample": True,
+                    "num_beams": 10,
+                    "early_stopping": True,
+                    "do_sample": True,
+                    "num_return_sequences": 5,
                 }
 
                 outputs = self.model.generate(
@@ -115,13 +116,15 @@ class Exp_main(Exp_base):
                     coords=coords,
                     **gen_kwargs,
                 )
+                outputs = outputs.view(labels.shape[0], 5, -1)
 
-                pred = self.tokenizer.batch_decode(outputs.detach().cpu().numpy(), skip_special_tokens=True)
+                pred = [self.tokenizer.batch_decode(output, skip_special_tokens=True) for output in outputs]
                 ref = self.tokenizer.batch_decode(labels.detach().cpu().numpy(), skip_special_tokens=True)
+
                 predictions.extend(pred)
                 references.extend(ref)
 
-        score = compute_rouge(predictions, references, self.tokenizer.tokenize)
+        score, predictions = compute_rouge(predictions, references, self.tokenizer.tokenize)
 
         generated_text = {"predictions": predictions, "references": references}
 
