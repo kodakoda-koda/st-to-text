@@ -106,7 +106,7 @@ class Exp_main(Exp_base):
                     "num_beams": 10,
                     "early_stopping": True,
                     "do_sample": True,
-                    "num_return_sequences": 5,
+                    "num_return_sequences": 10,
                 }
 
                 outputs = self.model.generate(
@@ -114,7 +114,7 @@ class Exp_main(Exp_base):
                     coords=coords,
                     **gen_kwargs,
                 )
-                outputs = outputs.view(labels.shape[0], 5, -1)
+                outputs = outputs.view(labels.shape[0], 10, -1)
 
                 pred = [self.tokenizer.batch_decode(output, skip_special_tokens=True) for output in outputs]
                 ref = self.tokenizer.batch_decode(labels.detach().cpu().numpy(), skip_special_tokens=True)
