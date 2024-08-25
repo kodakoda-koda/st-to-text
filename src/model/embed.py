@@ -20,9 +20,10 @@ class Embedding(nn.Module):
         x: (B, T, C)
         """
         x = self.embedding(x)
-        x += self.positional_encoding(x)
         if x_coord is not None:
             x += self.coord_embedding(x_coord)
+        else:
+            x += self.positional_encoding(x)
         return x
 
 

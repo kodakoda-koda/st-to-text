@@ -6,7 +6,7 @@ import evaluate
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from transformers import get_constant_schedule_with_warmup
+from transformers import get_cosine_schedule_with_warmup
 
 from src.exp.exp_base import Exp_base
 from src.utils.exp_utils import compute_rouge
@@ -18,7 +18,9 @@ class Exp_main(Exp_base):
         val_loader = self._get_dataloader(train_flag=False)
 
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.args.lr)
-        scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=len(train_loader))
+        scheduler = get_cosine_schedule_with_warmup(
+            optimizer, num_warmup_steps=len(train_loader), num_training_steps=len(train_loader) * self.args.num_epochs
+        )
 
         best_score = 0.0
         for epoch in range(self.args.num_epochs):
