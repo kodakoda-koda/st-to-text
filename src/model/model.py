@@ -22,7 +22,7 @@ class Model(nn.Module):
         t5_config = T5Config()
         t5_config.decoder_start_token_id = 0
         self.t5 = T5ForConditionalGeneration(t5_config)
-        self.fn_emb = nn.Linear(n_locations, self.t5.config.d_model)
+        self.fn_emb = nn.Linear(30, self.t5.config.d_model)
 
     def forward(
         self,
@@ -34,7 +34,7 @@ class Model(nn.Module):
     ) -> Seq2SeqLMOutput:
 
         encoder_outputs = self.gtformer(st_maps, coords)
-        encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state)
+        encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state.permute(0, 2, 1))
 
         outputs = self.t5(
             encoder_outputs=encoder_outputs,
@@ -53,7 +53,7 @@ class Model(nn.Module):
     ) -> Tensor:
 
         encoder_outputs = self.gtformer(st_maps, coords)
-        encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state)
+        encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state.permute(0, 2, 1))
 
         outputs = self.t5.generate(
             encoder_outputs=encoder_outputs,
