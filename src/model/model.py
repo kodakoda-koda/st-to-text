@@ -21,6 +21,7 @@ class Model(nn.Module):
         self.gtformer = GTformer(n_layers, d_model, n_heads, d_ff, dropout, n_locations)
         t5_config = T5Config()
         t5_config.decoder_start_token_id = 0
+        t5_config.num_layers = 2
         self.t5 = T5ForConditionalGeneration(t5_config)
         self.fn_emb = nn.Linear(30, self.t5.config.d_model)
 
