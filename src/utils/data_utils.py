@@ -48,7 +48,4 @@ def fluctuate(range_, change_range, change_index, start_value, fluctuation):
 
 
 def label_text(spot, spot_change, other_change):
-    if spot_change == other_change:
-        return f"all locations show a {spot_change}."
-    else:
-        return f"location {spot} shows a {spot_change}, while other locations show a {other_change}."
+    return f"location {spot} shows a {spot_change}, while other locations show a {other_change}."

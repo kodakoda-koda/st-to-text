@@ -27,7 +27,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         fluc_list = ["increase", "decrease", "peak", "dip", "flat"]
         spot = [np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1)]
         spot_change = random.choice(fluc_list)
-        other_change = random.choice(fluc_list)
+        other_change = random.choice([f for f in fluc_list if f != spot_change])
 
         if spot_change == other_change:
             spot_value = fluctuate(time_range, fluc_range, fluc_index, start_value, spot_change)

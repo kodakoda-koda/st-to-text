@@ -38,6 +38,7 @@ class CustomDataset(Dataset):
                 self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
             )
 
+        gas
         with open(self.args.data_dir + "data.json", "r") as f:
             data = json.load(f)
         st_maps = np.array(data["st_maps"])
