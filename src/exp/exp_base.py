@@ -45,7 +45,7 @@ class Exp_base:
         return dataloader
 
     def _get_weighted_loss_func(self):
-        loss_weight = torch.ones(32128)
+        loss_weight = torch.ones(self.model.vocab_size)
         loss_weight[
             [
                 6313,
