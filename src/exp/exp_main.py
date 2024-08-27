@@ -2,7 +2,6 @@ import json
 import os
 from typing import Dict, Tuple
 
-import evaluate
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
