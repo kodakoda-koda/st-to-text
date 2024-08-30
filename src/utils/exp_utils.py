@@ -22,7 +22,6 @@ class CustomLoss:
         self.y_dict = {idx: i + 1 for i, idx in enumerate(self.y_idx)}
         self.idx = torch.tensor([[1, 2, 3, 4, 5, 6, 7, 8] for _ in range(batch_size)]).to(device)
         self.softmax = nn.Softmax(dim=-1)
-        # memo: 数字以外のトークンにも損失を与える
 
     def __call__(self, logits, labels):
         x_labels = labels[:, 2].to(torch.device("cpu")).apply_(lambda x: self.x_dict[x]).to(logits.device)
@@ -36,8 +35,8 @@ class CustomLoss:
         y_loss = y_prob[:, self.y_idx] * y_dist
 
         lm_loss = self.lm_loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
-        coord_loss = x_loss.mean() + y_loss.mean()
-        return lm_loss + coord_loss
+        coord_loss = x_loss.sum() + y_loss.sum()
+        return lm_loss + coord_loss / 128
 
 
 def compute_rouge(predictions, references, tokenizer):
