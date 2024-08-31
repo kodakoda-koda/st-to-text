@@ -45,7 +45,10 @@ class Exp_main(Exp_base):
                 )
                 logits = outputs.logits
 
-                loss = self.loss_func(logits, labels)
+                if self.args.use_custom_loss:
+                    loss = self.loss_func(logits, labels)
+                else:
+                    loss = self.loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
 
                 loss.backward()
                 optimizer.step()
