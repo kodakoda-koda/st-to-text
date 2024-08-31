@@ -12,6 +12,28 @@ class Tokenizer:
         return self.tokenizer_func(text)
 
 
+def compute_rouge(predictions, references, tokenizer):
+    rouge_types = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
+
+    tokenizer = Tokenizer(tokenizer)
+
+    scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=False, tokenizer=tokenizer)
+    aggregator = scoring.BootstrapAggregator()
+
+    new_predictions = []
+    for ref, preds in zip(references, predictions):
+        scores = [scorer.score(ref, pred) for pred in preds]
+        idx = np.argmax([score["rouge1"].recall for score in scores])
+        new_predictions.append(preds[idx])
+        aggregator.add_scores(scores[idx])
+
+    result = aggregator.aggregate()
+    for key in result:
+        result[key] = result[key].mid.recall
+
+    return result, new_predictions
+
+
 class CustomLoss:
     def __init__(self, loss_weight, batch_size, device):
         super(CustomLoss, self).__init__()
@@ -33,29 +55,8 @@ class CustomLoss:
         y_prob = self.softmax(logits[:, 3])
         x_loss = x_prob[:, self.x_idx] * x_dist
         y_loss = y_prob[:, self.y_idx] * y_dist
+        # 数字じゃないところはさらに損失を与える
 
         lm_loss = self.lm_loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
         coord_loss = x_loss.sum() + y_loss.sum()
         return lm_loss + coord_loss / 128
-
-
-def compute_rouge(predictions, references, tokenizer):
-    rouge_types = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
-
-    tokenizer = Tokenizer(tokenizer)
-
-    scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=False, tokenizer=tokenizer)
-    aggregator = scoring.BootstrapAggregator()
-
-    new_predictions = []
-    for ref, preds in zip(references, predictions):
-        scores = [scorer.score(ref, pred) for pred in preds]
-        idx = np.argmax([score["rouge1"].recall for score in scores])
-        new_predictions.append(preds[idx])
-        aggregator.add_scores(scores[idx])
-
-    result = aggregator.aggregate()
-    for key in result:
-        result[key] = result[key].mid.recall
-
-    return result, new_predictions
