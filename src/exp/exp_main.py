@@ -61,6 +61,8 @@ class Exp_main(Exp_base):
                 total_loss += loss.item()
                 total_samples += 1
 
+            print(self.loss_func.dist)
+
             avg_loss = total_loss / total_samples
             eval_score, generated_text = self._eval(val_loader)
 
