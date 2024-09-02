@@ -35,7 +35,7 @@ def compute_rouge(predictions, references, tokenizer):
 
 
 class CustomLoss:
-    def __init__(self, loss_weight, batch_size, device):
+    def __init__(self, loss_weight):
         super(CustomLoss, self).__init__()
         self.lm_loss_func = nn.CrossEntropyLoss(weight=loss_weight, ignore_index=-100)
         self.x_idx = [4347, 4482, 6355, 8525, 11116, 11071, 32100, 11864]
