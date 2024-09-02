@@ -11,8 +11,6 @@ class Embedding(nn.Module):
         self.d_model = d_model
         self.embedding = nn.Linear(n_channels, d_model)
         self.positional_encoding = PositionalEncoding(d_model)
-        if n_coord is not None:
-            self.coord_embedding = LocationEmbedding(n_coord, d_model)
 
     def forward(self, x: Tensor, x_coord: Tensor = None) -> Tensor:
         """
@@ -20,10 +18,7 @@ class Embedding(nn.Module):
         x: (B, T, C)
         """
         x = self.embedding(x)
-        if x_coord is not None:
-            x += self.coord_embedding(x_coord)
-        else:
-            x += self.positional_encoding(x)
+        x += self.positional_encoding(x)
         return x
 
 
@@ -44,19 +39,3 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         return self.positional_encoding[: x.size(1)].to(x.dtype)
-
-
-class LocationEmbedding(nn.Module):
-    def __init__(self, n_coord: int, d_model: int):
-        super(LocationEmbedding, self).__init__()
-        self.x_embedding = nn.Embedding(int(math.sqrt(n_coord)), d_model)
-        self.y_embedding = nn.Embedding(int(math.sqrt(n_coord)), d_model)
-
-    def forward(self, x_coord: Tensor) -> Tensor:
-        x_x = x_coord[:, :, 0].long()
-        x_y = x_coord[:, :, 1].long()
-
-        x_x = self.x_embedding(x_x)
-        x_y = self.y_embedding(x_y)
-
-        return x_x + x_y

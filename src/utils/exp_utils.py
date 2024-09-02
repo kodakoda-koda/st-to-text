@@ -61,7 +61,7 @@ class CustomLoss:
 
         lm_loss = self.lm_loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
         coord_loss = x_loss.mean() + y_loss.mean()
-        return lm_loss + coord_loss * 0.2
+        return lm_loss + coord_loss * 0.1
 
     def __get_coord__(self, i):
         if i not in self.x_idx + self.y_idx:
