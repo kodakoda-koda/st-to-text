@@ -54,7 +54,7 @@ class Exp_base:
         loss_weight = loss_weight.to(self.device).to(self.dtype)
 
         if self.args.use_custom_loss:
-            loss_func = CustomLoss(loss_weight)
+            loss_func = CustomLoss(loss_weight, self.writer)
         else:
             loss_func = nn.CrossEntropyLoss(weight=loss_weight, ignore_index=-100)
         return loss_func

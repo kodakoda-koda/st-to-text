@@ -44,7 +44,7 @@ class Exp_main(Exp_base):
                 logits = outputs.logits
 
                 if self.args.use_custom_loss:
-                    loss = self.loss_func(logits, labels)
+                    loss = self.loss_func(logits, labels, epoch * len(train_loader) + i)
                 else:
                     loss = self.loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
 
