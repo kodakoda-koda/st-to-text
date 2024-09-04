@@ -2,7 +2,6 @@ import json
 import os
 from typing import Dict, Tuple
 
-import evaluate
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -30,7 +29,6 @@ class Exp_main(Exp_base):
             total_samples = 0
             for i, batch in enumerate(tqdm(train_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                coords = batch["coords"].to(self.device)
                 decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(self.device)
                 decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
@@ -39,14 +37,16 @@ class Exp_main(Exp_base):
 
                 outputs = self.model(
                     st_maps=st_maps,
-                    coords=coords,
                     decoder_input_ids=decoder_input_ids,
                     decoder_attention_mask=decoder_attention_mask,
                     labels=labels,
                 )
                 logits = outputs.logits
 
-                loss = self.loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
+                if self.args.use_custom_loss:
+                    loss = self.loss_func(logits, labels, epoch * len(train_loader) + i)
+                else:
+                    loss = self.loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
 
                 loss.backward()
                 optimizer.step()
@@ -100,28 +100,29 @@ class Exp_main(Exp_base):
         with torch.no_grad():
             for i, batch in enumerate(tqdm(data_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                coords = batch["coords"].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
                 gen_kwargs = {
                     "max_length": self.args.decoder_max_length,
-                    # "num_beams": 4,
-                    # "early_stopping": True,
-                    # "do_sample": True,
+                    "num_beams": 10,
+                    "early_stopping": True,
+                    "do_sample": True,
+                    "num_return_sequences": 10,
                 }
 
                 outputs = self.model.generate(
                     st_maps=st_maps,
-                    coords=coords,
                     **gen_kwargs,
                 )
+                outputs = outputs.view(labels.shape[0], 10, -1)
 
-                pred = self.tokenizer.batch_decode(outputs.detach().cpu().numpy(), skip_special_tokens=True)
+                pred = [self.tokenizer.batch_decode(output, skip_special_tokens=True) for output in outputs]
                 ref = self.tokenizer.batch_decode(labels.detach().cpu().numpy(), skip_special_tokens=True)
+
                 predictions.extend(pred)
                 references.extend(ref)
 
-        score = compute_rouge(predictions, references, self.tokenizer.tokenize)
+        score, predictions = compute_rouge(predictions, references, self.tokenizer.tokenize)
 
         generated_text = {"predictions": predictions, "references": references}
 

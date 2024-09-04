@@ -29,6 +29,7 @@ def main():
     parser.add_argument("--train_batch_size", type=int, default=8)
     parser.add_argument("--eval_batch_size", type=int, default=8)
     parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument("--use_custom_loss", action="store_true")
 
     # Model arguments
     parser.add_argument("--dtype", type=str, default="bfloat16")

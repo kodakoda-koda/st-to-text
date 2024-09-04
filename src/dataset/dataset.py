@@ -27,7 +27,6 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx: int) -> dict:
         return {
             "st_maps": self.st_maps[idx],
-            "coords": self.coords[idx],
             "decoder_input_ids": self.decoder_input_ids[idx],
             "decoder_attention_mask": self.decoder_attention_mask[idx],
         }
@@ -45,15 +44,14 @@ class CustomDataset(Dataset):
         labels = data["labels"]
 
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
-        coords = coords.reshape(st_maps.shape[0], -1, 2)
+        coords = coords.reshape(st_maps.shape[0], 2, -1)
+        st_maps = np.concatenate([coords, st_maps], axis=1)
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]
-            self.coords = coords[: int(0.8 * len(coords))]
             labels = labels[: int(0.8 * len(labels))]
         else:
             self.st_maps = st_maps[int(0.8 * len(st_maps)) :]
-            self.coords = coords[int(0.8 * len(coords)) :]
             labels = labels[int(0.8 * len(labels)) :]
 
         labels = ["<pad>" + label for label in labels]

@@ -21,19 +21,20 @@ class Model(nn.Module):
         self.gtformer = GTformer(n_layers, d_model, n_heads, d_ff, dropout, n_locations)
         t5_config = T5Config()
         t5_config.decoder_start_token_id = 0
+        t5_config.num_layers = 2
+        self.vocab_size = t5_config.vocab_size
         self.t5 = T5ForConditionalGeneration(t5_config)
         self.fn_emb = nn.Linear(n_locations, self.t5.config.d_model)
 
     def forward(
         self,
         st_maps: Tensor,
-        coords: Tensor,
         decoder_input_ids: Tensor = None,
         decoder_attention_mask: Tensor = None,
         labels: Tensor = None,
     ) -> Seq2SeqLMOutput:
 
-        encoder_outputs = self.gtformer(st_maps, coords)
+        encoder_outputs = self.gtformer(st_maps)
         encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state)
 
         outputs = self.t5(
@@ -48,11 +49,10 @@ class Model(nn.Module):
     def generate(
         self,
         st_maps: Tensor,
-        coords: Tensor,
         **kwargs,
     ) -> Tensor:
 
-        encoder_outputs = self.gtformer(st_maps, coords)
+        encoder_outputs = self.gtformer(st_maps)
         encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state)
 
         outputs = self.t5.generate(
