@@ -9,6 +9,10 @@ data/*
 # logs
 logs/*
 
+# singularity
+singularity.sif
+poetry.lock
+
 # other
 notebook/*.ipynb
 checkpoint/*
