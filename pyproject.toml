@@ -41,3 +41,7 @@ line-length = 120
 line_length = 120
 multi_line_output = 3
 profile = "black"
+
+[tool.pyright]
+venvPath = "/home/kodama/.cache/pypoetry/virtualenvs"
+venv = "st2text-QkqkHVLF-py3.12"
