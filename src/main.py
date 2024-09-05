@@ -1,9 +1,12 @@
 import argparse
+import warnings
 
 from transformers import set_seed
 
 from src.exp.exp_main import Exp_main
 from src.utils.main_utils import assert_arguments, log_arguments, set_logger
+
+warnings.filterwarnings("ignore")
 
 
 def main():
