@@ -1,7 +1,8 @@
+from typing import Optional
+
 import torch
 import torch.nn as nn
 from torch import Tensor
-from typing import Optional
 
 
 class SelfAttention(nn.Module):
@@ -17,7 +18,7 @@ class SelfAttention(nn.Module):
         self.q_proj = nn.Linear(head_dim, head_dim, bias=False)
         self.fc_out = nn.Linear(n_heads * head_dim, d_model)
 
-    def forward(self, query: Tensor, key: Tensor, value: Tensor, mask:Optional[Tensor] = None) -> Tensor:
+    def forward(self, query: Tensor, key: Tensor, value: Tensor, mask: Optional[Tensor] = None) -> Tensor:
         """
         B, L, H, D: batch size, sequence length, n_heads, d_model
         query: (B, L, D)

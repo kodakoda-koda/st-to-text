@@ -1,18 +1,22 @@
+from typing import List, Tuple
+
 import numpy as np
 import torch
 import torch.nn as nn
 from rouge_score import rouge_scorer, scoring
+from torch import Tensor
+from torch.utils.tensorboard.writer import SummaryWriter
 
 
 class Tokenizer:
     def __init__(self, tokenizer_func):
         self.tokenizer_func = tokenizer_func
 
-    def tokenize(self, text):
+    def tokenize(self, text: str) -> List[str]:
         return self.tokenizer_func(text)
 
 
-def compute_rouge(predictions, references, tokenizer):
+def compute_rouge(predictions: List[str], references: List[str], tokenizer) -> Tuple[dict, List[str]]:
     rouge_types = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
 
     tokenizer = Tokenizer(tokenizer)
@@ -35,7 +39,7 @@ def compute_rouge(predictions, references, tokenizer):
 
 
 class CustomLoss:
-    def __init__(self, loss_weight, writer):
+    def __init__(self, loss_weight: Tensor, writer: SummaryWriter):
         super(CustomLoss, self).__init__()
         self.lm_loss_func = nn.CrossEntropyLoss(weight=loss_weight, ignore_index=-100)
         self.x_idx = [4347, 4482, 6355, 8525, 11116, 11071, 32100, 11864]
@@ -43,7 +47,7 @@ class CustomLoss:
         self.softmax = nn.Softmax(dim=-1)
         self.writer = writer
 
-    def __call__(self, logits, labels, step):
+    def __call__(self, logits: Tensor, labels: Tensor, step: int) -> Tensor:
         x_labels = labels[:, 2].to(torch.device("cpu")).apply_(lambda x: self.x_idx.index(x) + 1).to(logits.device)
         y_labels = labels[:, 3].to(torch.device("cpu")).apply_(lambda x: self.y_idx.index(x) + 1).to(logits.device)
 
@@ -66,7 +70,7 @@ class CustomLoss:
 
         return lm_loss + coord_loss * 0.1
 
-    def __get_coord__(self, i):
+    def __get_coord__(self, i: int) -> int:
         if i not in self.x_idx + self.y_idx:
             return 100
         elif i in self.x_idx:

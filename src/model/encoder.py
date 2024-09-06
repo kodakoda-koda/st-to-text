@@ -1,6 +1,6 @@
 import torch
-from torch import FloatTensor
 import torch.nn as nn
+from torch import FloatTensor
 from transformers.modeling_outputs import BaseModelOutput
 
 from src.model.embed import Embedding

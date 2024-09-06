@@ -1,6 +1,7 @@
+from typing import Any, Optional
+
 import torch.nn as nn
 from torch import FloatTensor, LongTensor
-from typing import Optional, Any
 from transformers import T5Config, T5ForConditionalGeneration
 from transformers.modeling_outputs import Seq2SeqLMOutput
 

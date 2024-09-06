@@ -1,7 +1,9 @@
+from typing import List
+
 import numpy as np
 
 
-def fluctuate(range_, change_range, change_index, start_value, fluctuation):
+def fluctuate(range_: int, change_range: int, change_index: int, start_value: float, fluctuation: str) -> np.ndarray:
     max_value = np.random.uniform(start_value + 0.2, 1)
     min_value = np.random.uniform(0, start_value - 0.2)
 
@@ -47,5 +49,5 @@ def fluctuate(range_, change_range, change_index, start_value, fluctuation):
     return np.array(values)
 
 
-def label_text(spot, spot_change, other_change):
+def label_text(spot: List[int], spot_change: str, other_change: str):
     return f"location {spot} shows a {spot_change}, while other locations show a {other_change}."

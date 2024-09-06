@@ -14,7 +14,7 @@ class CustomDataset(Dataset):
         self,
         args: argparse.Namespace,
         tokenizer: transformers.PreTrainedTokenizer,
-        train_flag=True,
+        train_flag: bool = True,
     ):
         self.args = args
         self.tokenizer = tokenizer
@@ -31,7 +31,7 @@ class CustomDataset(Dataset):
             "decoder_attention_mask": self.decoder_attention_mask[idx],
         }
 
-    def __load_data__(self):
+    def __load_data__(self) -> None:
         if not os.path.exists(self.args.data_dir + "data.json"):
             create_data(
                 self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
