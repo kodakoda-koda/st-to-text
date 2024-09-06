@@ -4,6 +4,7 @@ from typing import Dict, Tuple
 
 import torch
 from torch.utils.data import DataLoader
+from torch.optim import AdamW
 from tqdm import tqdm
 from transformers import get_cosine_schedule_with_warmup
 
@@ -16,7 +17,7 @@ class Exp_main(Exp_base):
         train_loader = self._get_dataloader(train_flag=True)
         val_loader = self._get_dataloader(train_flag=False)
 
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.args.lr)
+        optimizer = AdamW(self.model.parameters(), lr=self.args.lr)
         scheduler = get_cosine_schedule_with_warmup(
             optimizer, num_warmup_steps=len(train_loader), num_training_steps=len(train_loader) * self.args.num_epochs
         )
@@ -43,10 +44,7 @@ class Exp_main(Exp_base):
                 )
                 logits = outputs.logits
 
-                if self.args.use_custom_loss:
-                    loss = self.loss_func(logits, labels, epoch * len(train_loader) + i)
-                else:
-                    loss = self.loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
+                loss = self.loss_func(logits, labels, epoch * len(train_loader) + i)
 
                 loss.backward()
                 optimizer.step()

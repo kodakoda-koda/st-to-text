@@ -1,6 +1,6 @@
 import torch
+from torch import FloatTensor
 import torch.nn as nn
-from torch import Tensor
 from transformers.modeling_outputs import BaseModelOutput
 
 from src.model.embed import Embedding
@@ -22,7 +22,7 @@ class GTformer(nn.Module):
             [GTformer_block(d_model, n_heads, d_ff, dropout, n_locations) for _ in range(n_layers)]
         )
 
-    def forward(self, st_maps: Tensor) -> BaseModelOutput:
+    def forward(self, st_maps: FloatTensor) -> BaseModelOutput:
         """
         B, T, L, M, N: batch size, time steps, length of text, number of locations, number of time features
         st_maps: (B, T, M)
@@ -47,7 +47,7 @@ class GTformer_block(nn.Module):
         self.s_out = nn.Linear(d_model, 32)
         self.layer_norm = nn.LayerNorm(32)
 
-    def forward(self, st_maps: Tensor) -> Tensor:
+    def forward(self, st_maps: FloatTensor) -> FloatTensor:
         t_maps = self.t_emb(st_maps)
         s_maps = self.s_emb(st_maps.permute(0, 2, 1))
 

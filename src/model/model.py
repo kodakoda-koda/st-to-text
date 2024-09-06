@@ -1,5 +1,6 @@
 import torch.nn as nn
-from torch import Tensor
+from torch import FloatTensor, LongTensor
+from typing import Optional, Any
 from transformers import T5Config, T5ForConditionalGeneration
 from transformers.modeling_outputs import Seq2SeqLMOutput
 
@@ -28,10 +29,10 @@ class Model(nn.Module):
 
     def forward(
         self,
-        st_maps: Tensor,
-        decoder_input_ids: Tensor = None,
-        decoder_attention_mask: Tensor = None,
-        labels: Tensor = None,
+        st_maps: FloatTensor,
+        decoder_input_ids: LongTensor,
+        decoder_attention_mask: LongTensor,
+        labels: Optional[LongTensor] = None,
     ) -> Seq2SeqLMOutput:
 
         encoder_outputs = self.gtformer(st_maps)
@@ -48,9 +49,9 @@ class Model(nn.Module):
 
     def generate(
         self,
-        st_maps: Tensor,
+        st_maps: FloatTensor,
         **kwargs,
-    ) -> Tensor:
+    ) -> Any:
 
         encoder_outputs = self.gtformer(st_maps)
         encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state)
