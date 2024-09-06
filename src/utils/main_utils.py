@@ -19,7 +19,6 @@ def log_arguments(args, logger):
     logger.info(f"train_batch_size: {args.train_batch_size}")
     logger.info(f"dtype: {args.dtype}")
     logger.info(f"decoder_max_length: {args.decoder_max_length}")
-    logger.info(f"custom_loss: {args.use_custom_loss}")
 
 
 def set_logger():
