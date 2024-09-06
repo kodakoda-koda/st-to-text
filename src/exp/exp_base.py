@@ -3,7 +3,8 @@ import logging
 
 import torch
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard.writer import SummaryWriter
+from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
 from src.dataset.dataset import CustomDataset
@@ -43,7 +44,7 @@ class Exp_base:
     def _get_dataloader(self, train_flag: bool):
         dataset = CustomDataset(self.args, self.tokenizer, train_flag)
         batch_size = self.args.train_batch_size if train_flag else self.args.eval_batch_size
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=train_flag)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=train_flag)
         return dataloader
 
     def _get_weighted_loss_func(self):
