@@ -1,18 +1,24 @@
 import argparse
+import logging
 import warnings
 
+import transformers
 from transformers import set_seed
 
 from src.exp.exp_main import Exp_main
-from src.utils.main_utils import assert_arguments, log_arguments, set_logger
+from src.utils.main_utils import assert_arguments, log_arguments
 
 warnings.filterwarnings("ignore")
+logging.basicConfig(
+    format="%(asctime)s - %(message)s",
+    level=logging.INFO,
+    datefmt="%m/%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+transformers.logging.set_verbosity_error()
 
 
 def main():
-    # Set logger
-    logger = set_logger()
-
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=42)
@@ -46,13 +52,13 @@ def main():
 
     args = parser.parse_args()
     assert_arguments(args)
-    log_arguments(args, logger)
+    log_arguments(args)
 
     # Set seed
     set_seed(args.seed)
 
     # Train and evaluate
-    exp = Exp_main(args, logger)
+    exp = Exp_main(args)
     exp.train()
 
 

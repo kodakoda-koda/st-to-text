@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from typing import Dict, Tuple
 
@@ -10,6 +11,13 @@ from transformers import get_cosine_schedule_with_warmup
 
 from src.exp.exp_base import Exp_base
 from src.utils.exp_utils import compute_rouge
+
+logging.basicConfig(
+    format="%(asctime)s - %(message)s",
+    level=logging.INFO,
+    datefmt="%m/%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 
 class Exp_main(Exp_base):
@@ -60,7 +68,7 @@ class Exp_main(Exp_base):
             avg_loss = total_loss / total_samples
             eval_score, generated_text = self._eval(val_loader)
 
-            self.logger.info(
+            logger.info(
                 "Epoch {} | Loss: {:.4f} | ROUGE-1: {:.4f} | ROUGE-2: {:.4f} |".format(
                     epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"]
                 )
@@ -72,7 +80,7 @@ class Exp_main(Exp_base):
             if eval_score["rouge1"] > best_score:
                 best_score = eval_score["rouge1"]
 
-                self.logger.info("Saving model with score: {:.4f}".format(best_score))
+                logger.info("Saving model with score: {:.4f}".format(best_score))
                 if not os.path.exists("./checkpoint"):
                     os.makedirs("./checkpoint")
                 torch.save(self.model.state_dict(), f"./checkpoint/checkpoint.pth")
