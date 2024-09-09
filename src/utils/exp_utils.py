@@ -47,17 +47,14 @@ class CustomLoss:
         self.softmax = nn.Softmax(dim=-1)
         self.writer = writer
 
-    def __call__(self, logits: Tensor, labels: Tensor, step: int) -> Tensor:
-        x_labels = labels[:, 2].to(torch.device("cpu")).apply_(lambda x: self.x_idx.index(x) + 1).to(logits.device)
-        y_labels = labels[:, 3].to(torch.device("cpu")).apply_(lambda x: self.y_idx.index(x) + 1).to(logits.device)
-
+    def __call__(self, logits: Tensor, labels: Tensor, coords_labels, step: int) -> Tensor:
         x_prob = self.softmax(logits[:, 2])
         y_prob = self.softmax(logits[:, 3])
 
         x_coords = torch.argmax(x_prob, dim=-1).to(torch.device("cpu")).apply_(self.__get_coord__).to(logits.device)
         y_coords = torch.argmax(y_prob, dim=-1).to(torch.device("cpu")).apply_(self.__get_coord__).to(logits.device)
-        x_dist = torch.abs(x_coords - x_labels)
-        y_dist = torch.abs(y_coords - y_labels)
+        x_dist = torch.abs(x_coords - coords_labels[:, 0])
+        y_dist = torch.abs(y_coords - coords_labels[:, 1])
 
         x_loss = x_prob.max(dim=-1)[0] * x_dist
         y_loss = y_prob.max(dim=-1)[0] * y_dist

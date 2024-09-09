@@ -29,6 +29,7 @@ class CustomDataset(Dataset):
             "st_maps": self.st_maps[idx],
             "decoder_input_ids": self.decoder_input_ids[idx],
             "decoder_attention_mask": self.decoder_attention_mask[idx],
+            "coords_labels": self.coords_labels[idx],
         }
 
     def __load_data__(self) -> None:
@@ -42,6 +43,7 @@ class CustomDataset(Dataset):
         st_maps = np.array(data["st_maps"])
         coords = np.array(data["coords"])
         labels = data["labels"]
+        coords_labels = np.array(data["coords_labels"])
 
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
         coords = coords.reshape(st_maps.shape[0], 2, -1)
@@ -50,9 +52,11 @@ class CustomDataset(Dataset):
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]
             labels = labels[: int(0.8 * len(labels))]
+            self.coords_labels = coords_labels[: int(0.8 * len(coords_labels))]
         else:
             self.st_maps = st_maps[int(0.8 * len(st_maps)) :]
             labels = labels[int(0.8 * len(labels)) :]
+            self.coords_labels = coords_labels[int(0.8 * len(coords_labels)) :]
 
         labels = ["<pad>" + label for label in labels]
         tokenized_labels = self.tokenizer.batch_encode_plus(
