@@ -3,6 +3,7 @@ import json
 import os
 
 import numpy as np
+import torch
 import transformers
 from torch.utils.data import Dataset
 
@@ -40,14 +41,14 @@ class CustomDataset(Dataset):
 
         with open(self.args.data_dir + "data.json", "r") as f:
             data = json.load(f)
-        st_maps = np.array(data["st_maps"])
-        coords = np.array(data["coords"])
+        st_maps = torch.tensor(data["st_maps"])
+        coords = torch.tensor(data["coords"])
         labels = data["labels"]
-        coords_labels = np.array(data["coords_labels"])
+        coords_labels = torch.tensor(data["coords_labels"])
 
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
-        coords = coords.reshape(st_maps.shape[0], 2, -1)
-        st_maps = np.concatenate([coords, st_maps], axis=1)
+        coords = coords.permute(0, 3, 1, 2).reshape(st_maps.shape[0], 2, -1)
+        st_maps = torch.cat([st_maps, coords], dim=1)
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]
