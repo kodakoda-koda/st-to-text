@@ -1,5 +1,6 @@
 from typing import Any, Optional
 
+import torch
 import torch.nn as nn
 from torch import FloatTensor, LongTensor
 from transformers import T5Config, T5ForConditionalGeneration
@@ -31,12 +32,14 @@ class Model(nn.Module):
     def forward(
         self,
         st_maps: FloatTensor,
+        coords: FloatTensor,
         decoder_input_ids: LongTensor,
         decoder_attention_mask: LongTensor,
         labels: Optional[LongTensor] = None,
     ) -> Seq2SeqLMOutput:
 
-        encoder_outputs = self.gtformer(st_maps)
+        encoder_inputs = torch.cat([st_maps, coords], dim=1)
+        encoder_outputs = self.gtformer(encoder_inputs)
 
         outputs = self.t5(
             encoder_outputs=encoder_outputs,
@@ -50,10 +53,12 @@ class Model(nn.Module):
     def generate(
         self,
         st_maps: FloatTensor,
+        coords: FloatTensor,
         **kwargs,
     ) -> Any:
 
-        encoder_outputs = self.gtformer(st_maps)
+        encoder_inputs = torch.cat([st_maps, coords], dim=1)
+        encoder_outputs = self.gtformer(encoder_inputs)
 
         outputs = self.t5.generate(
             encoder_outputs=encoder_outputs,
