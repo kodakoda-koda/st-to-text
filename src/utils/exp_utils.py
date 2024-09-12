@@ -60,12 +60,12 @@ class CustomLoss:
         y_loss = y_prob.max(dim=-1)[0] * y_dist
 
         lm_loss = self.lm_loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
-        coord_loss = x_loss.mean() + y_loss.mean()
+        coords_loss = x_loss.mean() + y_loss.mean()
 
         self.writer.add_scalar("Loss/lm_loss", lm_loss.item(), step)
-        self.writer.add_scalar("Loss/coord_loss", coord_loss.item(), step)
+        self.writer.add_scalar("Loss/coord_loss", coords_loss.item(), step)
 
-        return lm_loss + coord_loss * 0.1
+        return lm_loss + coords_loss * 0.1
 
     def __get_coord__(self, i: int) -> int:
         if i not in self.x_idx + self.y_idx:
