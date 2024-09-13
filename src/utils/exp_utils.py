@@ -27,7 +27,7 @@ def compute_rouge(predictions: List[str], references: List[str], tokenizer) -> T
     new_predictions = []
     for ref, preds in zip(references, predictions):
         scores = [scorer.score(ref, pred) for pred in preds]
-        idx = np.argmax([score["rouge1"].recall for score in scores])
+        idx = np.argmax([score["rouge2"].recall for score in scores])
         new_predictions.append(preds[idx])
         aggregator.add_scores(scores[idx])
 

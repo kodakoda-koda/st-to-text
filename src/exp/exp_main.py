@@ -80,8 +80,8 @@ class Exp_main(Exp_base):
             self.writer.add_scalar("Val_rouge/rouge-1", eval_score["rouge1"], epoch)
             self.writer.add_scalar("Val_rouge/rouge-2", eval_score["rouge2"], epoch)
 
-            if eval_score["rouge1"] > best_score:
-                best_score = eval_score["rouge1"]
+            if eval_score["rouge2"] > best_score:
+                best_score = eval_score["rouge2"]
 
                 logger.info("Saving model with score: {:.4f}".format(best_score))
                 if not os.path.exists("./checkpoint"):
