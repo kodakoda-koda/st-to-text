@@ -11,7 +11,7 @@ class SelfAttention(nn.Module):
         self.d_model = d_model
         self.n_heads = n_heads
         head_dim = self.d_model // self.n_heads
-        self.scaler = self.n_heads ** (1 / 2)
+        self.scaler = head_dim**0.5
 
         self.v_proj = nn.Linear(head_dim, head_dim, bias=False)
         self.k_proj = nn.Linear(head_dim, head_dim, bias=False)
@@ -33,9 +33,9 @@ class SelfAttention(nn.Module):
         if mask is not None:
             mask = mask.repeat(1, self.n_heads, 1, 1)
             attention_weight = attention_weight.masked_fill(mask == 1, float("-inf"))
-        attention_weight = torch.softmax(attention_weight, dim=3)
+        attention_weight = torch.softmax(attention_weight, dim=-1)
 
-        out = torch.einsum("bhqk,bkhd->bqhd", [attention_weight, values])  # (B, H, L, D)
+        out = torch.einsum("bhqk,bkhd->bqhd", [attention_weight, values])  # (B, L, H, D)
         out = self.fc_out(out.reshape(B, L, -1))  # (B, L, D)
 
         return out
