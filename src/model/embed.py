@@ -14,10 +14,6 @@ class Embedding(nn.Module):
         self.positional_encoding = PositionalEncoding(d_model)
 
     def forward(self, x: Tensor) -> Tensor:
-        """
-        B, T, C, N: batch size, time steps, number of channels, number of time features
-        x: (B, T, C)
-        """
         x = self.embedding(x)
         x += self.positional_encoding(x)
         return x

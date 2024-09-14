@@ -19,12 +19,6 @@ class SelfAttention(nn.Module):
         self.fc_out = nn.Linear(n_heads * head_dim, d_model)
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor, mask: Optional[Tensor] = None) -> Tensor:
-        """
-        B, L, H, D: batch size, sequence length, n_heads, d_model
-        query: (B, L, D)
-        key: (B, L, D)
-        value: (B, L, D)
-        """
         B, L, _ = query.shape
 
         queries = query.view(B, L, self.n_heads, -1)
@@ -55,9 +49,6 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x: Tensor) -> Tensor:
-        """
-        B, L, D: batch size, sequence length, d_model
-        """
         x = self.dropout(torch.relu(self.fc1(x)))
         x = self.fc2(x)
         return x  # (B, L, D)
@@ -73,11 +64,6 @@ class TransformerEncoderLayer(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
-        """
-        B, L, D: batch size, sequence length, d_model
-        x: (B, L, D)
-        mask: (B, L, L)
-        """
         attention_out = self.self_attention(x, x, x, mask)
         x = self.layer_norm1(x + self.dropout(attention_out))
 
