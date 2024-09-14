@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 from torch import FloatTensor
+from torch.nn import TransformerEncoderLayer
 from transformers.modeling_outputs import BaseModelOutput
 
 from src.model.embed import Embedding
-from src.model.transformer import TransformerEncoderLayer
+
+# from src.model.transformer import TransformerEncoderLayer
 
 
 class GTformer(nn.Module):
@@ -39,8 +41,12 @@ class GTformer_block(nn.Module):
         self.t_emb = Embedding(n_locations, d_model)
         self.s_emb = Embedding(32, d_model)
 
-        self.t_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
-        self.s_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
+        self.t_transformer = TransformerEncoderLayer(
+            d_model=d_model, nhead=n_heads, dim_feedforward=d_ff, dropout=dropout, batch_first=True
+        )
+        self.s_transformer = TransformerEncoderLayer(
+            d_model=d_model, nhead=n_heads, dim_feedforward=d_ff, dropout=dropout, batch_first=True
+        )
 
         self.t_out = nn.Linear(d_model, n_locations)
         self.s_out = nn.Linear(d_model, 32)
