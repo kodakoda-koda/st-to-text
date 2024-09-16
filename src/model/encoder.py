@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
-from torch import Tensor
+from torch import FloatTensor
+from torch.nn import TransformerEncoderLayer
 from transformers.modeling_outputs import BaseModelOutput
 
 from src.model.embed import Embedding
-from src.model.transformer import TransformerEncoderLayer
+
+# from src.model.transformer import TransformerEncoderLayer
 
 
 class GTformer(nn.Module):
@@ -16,22 +18,21 @@ class GTformer(nn.Module):
         d_ff: int,
         dropout: float,
         n_locations: int,
+        lm_d_model: int,
     ):
         super(GTformer, self).__init__()
         self.layers = nn.ModuleList(
             [GTformer_block(d_model, n_heads, d_ff, dropout, n_locations) for _ in range(n_layers)]
         )
+        self.fn = nn.Linear(n_locations, lm_d_model)
+        self.layer_norm = nn.LayerNorm(lm_d_model)
 
-    def forward(self, st_maps: Tensor) -> BaseModelOutput:
-        """
-        B, T, L, M, N: batch size, time steps, length of text, number of locations, number of time features
-        st_maps: (B, T, M)
-        coords: (B, M, 2)
-        """
+    def forward(self, st_maps: FloatTensor) -> BaseModelOutput:
         for layer in self.layers:
             st_maps = layer(st_maps)
+        out = self.layer_norm(self.fn(st_maps))
 
-        return BaseModelOutput(last_hidden_state=st_maps, hidden_states=None, attentions=None)
+        return BaseModelOutput(last_hidden_state=out, hidden_states=None, attentions=None)
 
 
 class GTformer_block(nn.Module):
@@ -40,14 +41,18 @@ class GTformer_block(nn.Module):
         self.t_emb = Embedding(n_locations, d_model)
         self.s_emb = Embedding(32, d_model)
 
-        self.t_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
-        self.s_transformer = TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
+        self.t_transformer = TransformerEncoderLayer(
+            d_model=d_model, nhead=n_heads, dim_feedforward=d_ff, dropout=dropout, batch_first=True
+        )
+        self.s_transformer = TransformerEncoderLayer(
+            d_model=d_model, nhead=n_heads, dim_feedforward=d_ff, dropout=dropout, batch_first=True
+        )
 
         self.t_out = nn.Linear(d_model, n_locations)
         self.s_out = nn.Linear(d_model, 32)
         self.layer_norm = nn.LayerNorm(32)
 
-    def forward(self, st_maps: Tensor) -> Tensor:
+    def forward(self, st_maps: FloatTensor) -> FloatTensor:
         t_maps = self.t_emb(st_maps)
         s_maps = self.s_emb(st_maps.permute(0, 2, 1))
 

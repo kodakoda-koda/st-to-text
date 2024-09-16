@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -6,17 +7,13 @@ from torch import Tensor
 
 
 class Embedding(nn.Module):
-    def __init__(self, n_channels: int, d_model: int, n_coord: int = None):
+    def __init__(self, n_channels: int, d_model: int):
         super(Embedding, self).__init__()
         self.d_model = d_model
         self.embedding = nn.Linear(n_channels, d_model)
         self.positional_encoding = PositionalEncoding(d_model)
 
-    def forward(self, x: Tensor, x_coord: Tensor = None) -> Tensor:
-        """
-        B, T, C, N: batch size, time steps, number of channels, number of time features
-        x: (B, T, C)
-        """
+    def forward(self, x: Tensor) -> Tensor:
         x = self.embedding(x)
         x += self.positional_encoding(x)
         return x

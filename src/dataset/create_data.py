@@ -7,7 +7,11 @@ import numpy as np
 
 from src.utils.data_utils import fluctuate, label_text
 
-logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig(
+    format="%(asctime)s - %(message)s",
+    level=logging.INFO,
+    datefmt="%m/%d %H:%M:%S",
+)
 logger = logging.getLogger(__name__)
 
 
@@ -18,6 +22,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
     st_maps = np.zeros((n_data, time_range, map_size, map_size))
     labels = []
     coords = []
+    coords_labels = []
 
     for i in range(n_data):
         # Randomly generate a spot and change
@@ -55,13 +60,14 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
 
         # Create label text
         labels.append(label_text(spot, spot_change, other_change))
+        coords_labels.append(spot)
 
     logger.info("Data created")
 
     # Save data
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
-    data = {"st_maps": st_maps.tolist(), "coords": coords, "labels": labels}
+    data = {"st_maps": st_maps.tolist(), "coords": coords, "labels": labels, "coords_labels": coords_labels}
     with open(data_dir + "data.json", "w") as f:
         json.dump(data, f)
 

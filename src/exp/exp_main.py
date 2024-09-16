@@ -1,14 +1,23 @@
 import json
+import logging
 import os
 from typing import Dict, Tuple
 
 import torch
+from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from transformers import get_cosine_schedule_with_warmup
+from transformers import get_constant_schedule_with_warmup, get_cosine_schedule_with_warmup
 
 from src.exp.exp_base import Exp_base
 from src.utils.exp_utils import compute_rouge
+
+logging.basicConfig(
+    format="%(asctime)s - %(message)s",
+    level=logging.INFO,
+    datefmt="%m/%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 
 class Exp_main(Exp_base):
@@ -16,10 +25,11 @@ class Exp_main(Exp_base):
         train_loader = self._get_dataloader(train_flag=True)
         val_loader = self._get_dataloader(train_flag=False)
 
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.args.lr)
-        scheduler = get_cosine_schedule_with_warmup(
-            optimizer, num_warmup_steps=len(train_loader), num_training_steps=len(train_loader) * self.args.num_epochs
-        )
+        optimizer = AdamW(self.model.parameters(), lr=self.args.lr)
+        # scheduler = get_cosine_schedule_with_warmup(
+        #     optimizer, num_warmup_steps=len(train_loader), num_training_steps=len(train_loader) * self.args.num_epochs
+        # )
+        scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=len(train_loader))
 
         best_score = 0.0
         for epoch in range(self.args.num_epochs):
@@ -29,24 +39,24 @@ class Exp_main(Exp_base):
             total_samples = 0
             for i, batch in enumerate(tqdm(train_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
+                coords = batch["coords"].to(self.device).to(self.dtype)
                 decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(self.device)
                 decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
+                coords_labels = batch["coords_labels"].to(self.device).to(self.dtype)
 
                 labels[labels == self.tokenizer.pad_token_id] = -100
 
                 outputs = self.model(
                     st_maps=st_maps,
+                    coords=coords,
                     decoder_input_ids=decoder_input_ids,
                     decoder_attention_mask=decoder_attention_mask,
                     labels=labels,
                 )
                 logits = outputs.logits
 
-                if self.args.use_custom_loss:
-                    loss = self.loss_func(logits, labels, epoch * len(train_loader) + i)
-                else:
-                    loss = self.loss_func(logits.view(-1, logits.size(-1)), labels.view(-1))
+                loss = self.loss_func(logits, labels, coords_labels, epoch * len(train_loader) + i)
 
                 loss.backward()
                 optimizer.step()
@@ -62,7 +72,7 @@ class Exp_main(Exp_base):
             avg_loss = total_loss / total_samples
             eval_score, generated_text = self._eval(val_loader)
 
-            self.logger.info(
+            logger.info(
                 "Epoch {} | Loss: {:.4f} | ROUGE-1: {:.4f} | ROUGE-2: {:.4f} |".format(
                     epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"]
                 )
@@ -71,10 +81,10 @@ class Exp_main(Exp_base):
             self.writer.add_scalar("Val_rouge/rouge-1", eval_score["rouge1"], epoch)
             self.writer.add_scalar("Val_rouge/rouge-2", eval_score["rouge2"], epoch)
 
-            if eval_score["rouge1"] > best_score:
-                best_score = eval_score["rouge1"]
+            if eval_score["rouge2"] > best_score:
+                best_score = eval_score["rouge2"]
 
-                self.logger.info("Saving model with score: {:.4f}".format(best_score))
+                logger.info("Saving model with score: {:.4f}".format(best_score))
                 if not os.path.exists("./checkpoint"):
                     os.makedirs("./checkpoint")
                 torch.save(self.model.state_dict(), f"./checkpoint/checkpoint.pth")
@@ -100,6 +110,7 @@ class Exp_main(Exp_base):
         with torch.no_grad():
             for i, batch in enumerate(tqdm(data_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
+                coords = batch["coords"].to(self.device).to(self.dtype)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
                 gen_kwargs = {
@@ -112,6 +123,7 @@ class Exp_main(Exp_base):
 
                 outputs = self.model.generate(
                     st_maps=st_maps,
+                    coords=coords,
                     **gen_kwargs,
                 )
                 outputs = outputs.view(labels.shape[0], 10, -1)

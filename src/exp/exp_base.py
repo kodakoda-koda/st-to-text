@@ -3,7 +3,8 @@ import logging
 
 import torch
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data import DataLoader
+from torch.utils.tensorboard.writer import SummaryWriter
 from transformers import AutoTokenizer
 
 from src.dataset.dataset import CustomDataset
@@ -12,9 +13,8 @@ from src.utils.exp_utils import CustomLoss
 
 
 class Exp_base:
-    def __init__(self, args: argparse.Namespace, logger: logging.Logger):
+    def __init__(self, args: argparse.Namespace):
         self.args = args
-        self.logger = logger
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float32
         self.writer = SummaryWriter(log_dir=args.log_dir + f"{args.job_id}")
@@ -43,18 +43,14 @@ class Exp_base:
     def _get_dataloader(self, train_flag: bool):
         dataset = CustomDataset(self.args, self.tokenizer, train_flag)
         batch_size = self.args.train_batch_size if train_flag else self.args.eval_batch_size
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=train_flag)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=train_flag)
         return dataloader
 
     def _get_weighted_loss_func(self):
         loss_weight = torch.ones(self.model.vocab_size)
         loss_weight[[6313, 6734, 10823, 993, 2667]] = 5.0
-        # loss_weight[[4347, 4482, 6355, 8525, 11116, 11071, 32100, 11864]] = 5.0
-        # loss_weight[[209, 204, 220, 314, 305, 431, 489, 505]] = 5.0
         loss_weight = loss_weight.to(self.device).to(self.dtype)
 
-        if self.args.use_custom_loss:
-            loss_func = CustomLoss(loss_weight, self.writer)
-        else:
-            loss_func = nn.CrossEntropyLoss(weight=loss_weight, ignore_index=-100)
+        loss_func = CustomLoss(loss_weight, self.writer)
+
         return loss_func

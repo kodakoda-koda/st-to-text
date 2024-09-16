@@ -1,3 +1,5 @@
+from typing import Optional
+
 import torch
 import torch.nn as nn
 from torch import Tensor
@@ -9,20 +11,14 @@ class SelfAttention(nn.Module):
         self.d_model = d_model
         self.n_heads = n_heads
         head_dim = self.d_model // self.n_heads
-        self.scaler = self.n_heads ** (1 / 2)
+        self.scaler = head_dim**0.5
 
         self.v_proj = nn.Linear(head_dim, head_dim, bias=False)
         self.k_proj = nn.Linear(head_dim, head_dim, bias=False)
         self.q_proj = nn.Linear(head_dim, head_dim, bias=False)
         self.fc_out = nn.Linear(n_heads * head_dim, d_model)
 
-    def forward(self, query: Tensor, key: Tensor, value: Tensor, mask: Tensor = None) -> Tensor:
-        """
-        B, L, H, D: batch size, sequence length, n_heads, d_model
-        query: (B, L, D)
-        key: (B, L, D)
-        value: (B, L, D)
-        """
+    def forward(self, query: Tensor, key: Tensor, value: Tensor, mask: Optional[Tensor] = None) -> Tensor:
         B, L, _ = query.shape
 
         queries = query.view(B, L, self.n_heads, -1)
@@ -37,9 +33,9 @@ class SelfAttention(nn.Module):
         if mask is not None:
             mask = mask.repeat(1, self.n_heads, 1, 1)
             attention_weight = attention_weight.masked_fill(mask == 1, float("-inf"))
-        attention_weight = torch.softmax(attention_weight, dim=3)
+        attention_weight = torch.softmax(attention_weight, dim=-1)
 
-        out = torch.einsum("bhqk,bkhd->bqhd", [attention_weight, values])  # (B, H, L, D)
+        out = torch.einsum("bhqk,bkhd->bqhd", [attention_weight, values])  # (B, L, H, D)
         out = self.fc_out(out.reshape(B, L, -1))  # (B, L, D)
 
         return out
@@ -53,9 +49,6 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x: Tensor) -> Tensor:
-        """
-        B, L, D: batch size, sequence length, d_model
-        """
         x = self.dropout(torch.relu(self.fc1(x)))
         x = self.fc2(x)
         return x  # (B, L, D)
@@ -70,12 +63,7 @@ class TransformerEncoderLayer(nn.Module):
         self.layer_norm2 = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x: Tensor, mask: Tensor = None) -> Tensor:
-        """
-        B, L, D: batch size, sequence length, d_model
-        x: (B, L, D)
-        mask: (B, L, L)
-        """
+    def forward(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
         attention_out = self.self_attention(x, x, x, mask)
         x = self.layer_norm1(x + self.dropout(attention_out))
 

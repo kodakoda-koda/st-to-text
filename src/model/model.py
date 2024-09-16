@@ -1,5 +1,8 @@
+from typing import Any, Optional
+
+import torch
 import torch.nn as nn
-from torch import Tensor
+from torch import FloatTensor, LongTensor
 from transformers import T5Config, T5ForConditionalGeneration
 from transformers.modeling_outputs import Seq2SeqLMOutput
 
@@ -18,24 +21,25 @@ class Model(nn.Module):
     ):
         super(Model, self).__init__()
 
-        self.gtformer = GTformer(n_layers, d_model, n_heads, d_ff, dropout, n_locations)
         t5_config = T5Config()
         t5_config.decoder_start_token_id = 0
-        t5_config.num_layers = 2
+        t5_config.num_layers = 3
         self.vocab_size = t5_config.vocab_size
         self.t5 = T5ForConditionalGeneration(t5_config)
-        self.fn_emb = nn.Linear(n_locations, self.t5.config.d_model)
+
+        self.gtformer = GTformer(n_layers, d_model, n_heads, d_ff, dropout, n_locations, self.t5.config.d_model)
 
     def forward(
         self,
-        st_maps: Tensor,
-        decoder_input_ids: Tensor = None,
-        decoder_attention_mask: Tensor = None,
-        labels: Tensor = None,
+        st_maps: FloatTensor,
+        coords: FloatTensor,
+        decoder_input_ids: LongTensor,
+        decoder_attention_mask: LongTensor,
+        labels: Optional[LongTensor] = None,
     ) -> Seq2SeqLMOutput:
 
-        encoder_outputs = self.gtformer(st_maps)
-        encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state)
+        encoder_inputs = torch.cat([st_maps, coords], dim=1)
+        encoder_outputs = self.gtformer(encoder_inputs)
 
         outputs = self.t5(
             encoder_outputs=encoder_outputs,
@@ -48,12 +52,13 @@ class Model(nn.Module):
 
     def generate(
         self,
-        st_maps: Tensor,
+        st_maps: FloatTensor,
+        coords: FloatTensor,
         **kwargs,
-    ) -> Tensor:
+    ) -> Any:
 
-        encoder_outputs = self.gtformer(st_maps)
-        encoder_outputs.last_hidden_state = self.fn_emb(encoder_outputs.last_hidden_state)
+        encoder_inputs = torch.cat([st_maps, coords], dim=1)
+        encoder_outputs = self.gtformer(encoder_inputs)
 
         outputs = self.t5.generate(
             encoder_outputs=encoder_outputs,

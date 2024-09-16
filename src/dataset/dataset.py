@@ -3,6 +3,7 @@ import json
 import os
 
 import numpy as np
+import torch
 import transformers
 from torch.utils.data import Dataset
 
@@ -14,7 +15,7 @@ class CustomDataset(Dataset):
         self,
         args: argparse.Namespace,
         tokenizer: transformers.PreTrainedTokenizer,
-        train_flag=True,
+        train_flag: bool = True,
     ):
         self.args = args
         self.tokenizer = tokenizer
@@ -27,11 +28,13 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx: int) -> dict:
         return {
             "st_maps": self.st_maps[idx],
+            "coords": self.coords[idx],
             "decoder_input_ids": self.decoder_input_ids[idx],
             "decoder_attention_mask": self.decoder_attention_mask[idx],
+            "coords_labels": self.coords_labels[idx],
         }
 
-    def __load_data__(self):
+    def __load_data__(self) -> None:
         if not os.path.exists(self.args.data_dir + "data.json"):
             create_data(
                 self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
@@ -39,20 +42,25 @@ class CustomDataset(Dataset):
 
         with open(self.args.data_dir + "data.json", "r") as f:
             data = json.load(f)
-        st_maps = np.array(data["st_maps"])
-        coords = np.array(data["coords"])
+        st_maps = torch.tensor(data["st_maps"])
+        coords = torch.tensor(data["coords"])
         labels = data["labels"]
+        coords_labels = torch.tensor(data["coords_labels"])
 
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
-        coords = coords.reshape(st_maps.shape[0], 2, -1)
-        st_maps = np.concatenate([coords, st_maps], axis=1)
+        coords = coords.permute(0, 3, 1, 2).reshape(st_maps.shape[0], 2, -1)
+        # st_maps = torch.cat([st_maps, coords], dim=1)
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]
+            self.coords = coords[: int(0.8 * len(coords))]
             labels = labels[: int(0.8 * len(labels))]
+            self.coords_labels = coords_labels[: int(0.8 * len(coords_labels))]
         else:
             self.st_maps = st_maps[int(0.8 * len(st_maps)) :]
+            self.coords = coords[int(0.8 * len(coords)) :]
             labels = labels[int(0.8 * len(labels)) :]
+            self.coords_labels = coords_labels[int(0.8 * len(coords_labels)) :]
 
         labels = ["<pad>" + label for label in labels]
         tokenized_labels = self.tokenizer.batch_encode_plus(
