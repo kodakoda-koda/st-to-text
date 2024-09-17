@@ -24,13 +24,13 @@ class GTformer(nn.Module):
         self.layers = nn.ModuleList(
             [GTformer_block(d_model, n_heads, d_ff, dropout, n_locations) for _ in range(n_layers)]
         )
-        self.fn = nn.Linear(n_locations, lm_d_model)
+        self.fn = nn.Linear(32, lm_d_model)
         self.layer_norm = nn.LayerNorm(lm_d_model)
 
     def forward(self, st_maps: FloatTensor) -> BaseModelOutput:
         for layer in self.layers:
             st_maps = layer(st_maps)
-        out = self.layer_norm(self.fn(st_maps))
+        out = self.layer_norm(self.fn(st_maps.permute(0, 2, 1)))
 
         return BaseModelOutput(last_hidden_state=out, hidden_states=None, attentions=None)
 
