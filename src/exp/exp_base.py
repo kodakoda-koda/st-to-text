@@ -37,7 +37,7 @@ class Exp_base:
 
     def _bulid_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(self.args.lm_name, legacy=False)
-        tokenizer.add_tokens(["7,"])
+        tokenizer.add_tokens(["7,", "0,", "9,"])
         return tokenizer
 
     def _get_dataloader(self, train_flag: bool):

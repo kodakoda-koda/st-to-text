@@ -39,7 +39,8 @@ class Exp_main(Exp_base):
             total_samples = 0
             for i, batch in enumerate(tqdm(train_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                coords = batch["coords"].to(self.device).to(self.dtype)
+                # coords = batch["coords"].to(self.device).to(self.dtype)
+                encoder_input_ids = batch["encoder_input_ids"].to(self.device)
                 decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(self.device)
                 decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
@@ -49,7 +50,8 @@ class Exp_main(Exp_base):
 
                 outputs = self.model(
                     st_maps=st_maps,
-                    coords=coords,
+                    # coords=coords,
+                    encoder_input_ids=encoder_input_ids,
                     decoder_input_ids=decoder_input_ids,
                     decoder_attention_mask=decoder_attention_mask,
                     labels=labels,
@@ -110,7 +112,8 @@ class Exp_main(Exp_base):
         with torch.no_grad():
             for i, batch in enumerate(tqdm(data_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                coords = batch["coords"].to(self.device).to(self.dtype)
+                # coords = batch["coords"].to(self.device).to(self.dtype)
+                encoder_input_ids = batch["encoder_input_ids"].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
                 gen_kwargs = {
@@ -123,7 +126,8 @@ class Exp_main(Exp_base):
 
                 outputs = self.model.generate(
                     st_maps=st_maps,
-                    coords=coords,
+                    # coords=coords,
+                    encoder_input_ids=encoder_input_ids,
                     **gen_kwargs,
                 )
                 outputs = outputs.view(labels.shape[0], 10, -1)

@@ -28,7 +28,8 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx: int) -> dict:
         return {
             "st_maps": self.st_maps[idx],
-            "coords": self.coords[idx],
+            # "coords": self.coords[idx],
+            "encoder_input_ids": self.encoder_input_ids,
             "decoder_input_ids": self.decoder_input_ids[idx],
             "decoder_attention_mask": self.decoder_attention_mask[idx],
             "coords_labels": self.coords_labels[idx],
@@ -43,24 +44,23 @@ class CustomDataset(Dataset):
         with open(self.args.data_dir + "data.json", "r") as f:
             data = json.load(f)
         st_maps = torch.tensor(data["st_maps"])
-        coords = torch.tensor(data["coords"])
+        # coords = torch.tensor(data["coords"])
         labels = data["labels"]
         coords_labels = torch.tensor(data["coords_labels"])
 
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
-        coords = coords.permute(0, 3, 1, 2).reshape(st_maps.shape[0], 2, -1)
-        # st_maps = torch.cat([st_maps, coords], dim=1)
+        # coords = coords.permute(0, 3, 1, 2).reshape(st_maps.shape[0], 2, -1)
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.8 * len(st_maps))]
-            self.coords = coords[: int(0.8 * len(coords))]
-            labels = labels[: int(0.8 * len(labels))]
+            # self.coords = coords[: int(0.8 * len(coords))]
             self.coords_labels = coords_labels[: int(0.8 * len(coords_labels))]
+            labels = labels[: int(0.8 * len(labels))]
         else:
             self.st_maps = st_maps[int(0.8 * len(st_maps)) :]
-            self.coords = coords[int(0.8 * len(coords)) :]
-            labels = labels[int(0.8 * len(labels)) :]
+            # self.coords = coords[int(0.8 * len(coords)) :]
             self.coords_labels = coords_labels[int(0.8 * len(coords_labels)) :]
+            labels = labels[int(0.8 * len(labels)) :]
 
         labels = ["<pad>" + label for label in labels]
         tokenized_labels = self.tokenizer.batch_encode_plus(
@@ -72,3 +72,13 @@ class CustomDataset(Dataset):
         )
         self.decoder_input_ids = tokenized_labels.input_ids
         self.decoder_attention_mask = tokenized_labels.attention_mask
+
+        height = int(self.args.n_locations**0.5)
+        coords = [f"[{i}, {j}]" for i in range(height) for j in range(height)]
+        tokenized_coords = self.tokenizer.batch_encode_plus(
+            coords,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+        )
+        self.encoder_input_ids = tokenized_coords.input_ids
