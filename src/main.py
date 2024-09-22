@@ -21,7 +21,7 @@ transformers.logging.set_verbosity_error()
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int, default=2024)
     parser.add_argument("--data_dir", type=str, default="./data/")
     parser.add_argument("--output_dir", type=str, default="./outputs/")
     parser.add_argument("--log_dir", type=str, default="./logs/")

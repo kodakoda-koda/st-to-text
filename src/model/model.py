@@ -29,7 +29,6 @@ class Model(nn.Module):
         self.vocab_size = t5_config.vocab_size
         self.t5 = T5ForConditionalGeneration(t5_config)
         self.gtformer = GTformer(n_layers, d_model, n_heads, d_ff, dropout, n_locations, self.t5.config.d_model)
-        self.fn = nn.Linear(self.t5.config.d_model * 2, self.t5.config.d_model)
         self.layer_norm = nn.LayerNorm(self.t5.config.d_model)
 
     def forward(
