@@ -10,12 +10,12 @@ from tqdm import tqdm
 from transformers import get_constant_schedule_with_warmup, get_cosine_schedule_with_warmup
 
 from src.exp.exp_base import Exp_base
-from src.utils.exp_utils import compute_rouge
+from src.utils.exp_utils import compute_score
 
 logging.basicConfig(
     format="%(asctime)s - %(message)s",
     level=logging.INFO,
-    datefmt="%m/%d %H:%M:%S",
+    datefmt="%m/%d %H:%M",
 )
 logger = logging.getLogger(__name__)
 
@@ -75,8 +75,8 @@ class Exp_main(Exp_base):
             eval_score, generated_text = self._eval(val_loader)
 
             logger.info(
-                "Epoch {} | Loss: {:.4f} | ROUGE-1: {:.4f} | ROUGE-2: {:.4f} |".format(
-                    epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"]
+                "Epoch {:4d} | Loss: {:.4f} | R-1: {:.4f} | R-2: {:.4f} | Acc: {:.4f} |".format(
+                    epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"], eval_score["accuracy"]
                 )
             )
 
@@ -96,9 +96,10 @@ class Exp_main(Exp_base):
                 with open(self.args.output_dir + f"{self.args.job_id}/generated_text.json", "w") as f:
                     json.dump(generated_text, f)
 
-        self.model.load_state_dict(torch.load(f"./checkpoint/checkpoint.pth"))
+        logger.info("Best score: {:.4f}".format(best_score))
 
         # Save model
+        self.model.load_state_dict(torch.load(f"./checkpoint/checkpoint.pth"))
         torch.save(self.model.state_dict(), self.args.output_dir + f"{self.args.job_id}/model.pth")
         self.tokenizer.save_pretrained(self.args.output_dir + f"{self.args.job_id}/tokenizer")
 
@@ -138,7 +139,7 @@ class Exp_main(Exp_base):
                 predictions.extend(pred)
                 references.extend(ref)
 
-        score, predictions = compute_rouge(predictions, references, self.tokenizer.tokenize)
+        score, predictions = compute_score(predictions, references, self.tokenizer.tokenize)
 
         generated_text = {"predictions": predictions, "references": references}
 

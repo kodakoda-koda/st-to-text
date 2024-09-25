@@ -1,3 +1,4 @@
+import re
 from typing import List, Tuple
 
 import numpy as np
@@ -16,11 +17,41 @@ class Tokenizer:
         return self.tokenizer_func(text)
 
 
-def compute_rouge(predictions: List[str], references: List[str], tokenizer) -> Tuple[dict, List[str]]:
-    rouge_types = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
+class Accuracy:
+    def __init__(self, tokenizer_func):
+        self.tokenizer_func = tokenizer_func
 
+    def __call__(self, pred: str, ref: str):
+        ref_ = []
+        ref_.extend(list(re.findall(r"\[(\d), (\d)\]", ref)[0]))
+        ref_.append(re.findall(r"shows a (\w+), while", ref)[0])
+        ref_.append(re.findall(r"show a (\w+)\.", ref)[0])
+
+        pred_ = []
+        if re.findall(r"\[(\d), (\d)\]", pred) == []:
+            pred_ = ["0", "0"]
+        else:
+            pred_.extend(list(re.findall(r"\[(\d), (\d)\]", pred)[0]))
+        if re.findall(r"shows a (\w+), while", pred) == []:
+            pred_.append("none")
+        else:
+            pred_.append(re.findall(r"shows a (\w+), while", pred)[0])
+        if re.findall(r"show a (\w+)\.", pred) == []:
+            pred_.append("none")
+        else:
+            pred_.append(re.findall(r"show a (\w+)\.", pred)[0])
+
+        acc = 0
+        for r, p in zip(ref_, pred_):
+            if r == p:
+                acc += 1
+
+        return acc / 4
+
+
+def compute_score(predictions: List[str], references: List[str], tokenizer) -> Tuple[dict, List[str]]:
+    rouge_types = ["rouge1", "rouge2"]
     tokenizer = Tokenizer(tokenizer)
-
     scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=False, tokenizer=tokenizer)
     aggregator = scoring.BootstrapAggregator()
 
@@ -31,9 +62,17 @@ def compute_rouge(predictions: List[str], references: List[str], tokenizer) -> T
         new_predictions.append(preds[idx])
         aggregator.add_scores(scores[idx])
 
+    accuracy = Accuracy(tokenizer)
+    accuracies = []
+    for ref, preds in zip(references, new_predictions):
+        acc = accuracy(preds, ref)
+        accuracies.append(acc)
+
     result = aggregator.aggregate()
     for key in result:
         result[key] = result[key].mid.recall
+
+    result["accuracy"] = np.mean(accuracies)
 
     return result, new_predictions
 

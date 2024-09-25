@@ -10,7 +10,7 @@ from src.utils.data_utils import fluctuate, label_text
 logging.basicConfig(
     format="%(asctime)s - %(message)s",
     level=logging.INFO,
-    datefmt="%m/%d %H:%M:%S",
+    datefmt="%m/%d %H:%M",
 )
 logger = logging.getLogger(__name__)
 

@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 logging.basicConfig(
     format="%(asctime)s - %(message)s",
     level=logging.INFO,
-    datefmt="%m/%d %H:%M:%S",
+    datefmt="%m/%d %H:%M",
 )
 logger = logging.getLogger(__name__)
 transformers.logging.set_verbosity_error()
