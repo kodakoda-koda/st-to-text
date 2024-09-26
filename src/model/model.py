@@ -43,6 +43,7 @@ class Model(nn.Module):
         t5enc_output = self.t5.encoder(encoder_input_ids.view(-1, encoder_input_ids.size(-1)))
         t5enc_output = t5enc_output.last_hidden_state[:, 0, :]
         t5enc_output = t5enc_output.view(encoder_input_ids.size(0), encoder_input_ids.size(1), -1)
+
         gtformer_output = self.gtformer(st_maps)
 
         encoder_outputs = t5enc_output + gtformer_output
@@ -68,6 +69,7 @@ class Model(nn.Module):
         t5enc_output = self.t5.encoder(encoder_input_ids.view(-1, encoder_input_ids.size(-1)))
         t5enc_output = t5enc_output.last_hidden_state[:, 0, :]
         t5enc_output = t5enc_output.view(encoder_input_ids.size(0), encoder_input_ids.size(1), -1)
+
         gtformer_output = self.gtformer(st_maps)
 
         encoder_outputs = t5enc_output + gtformer_output
