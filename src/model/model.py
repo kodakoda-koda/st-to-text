@@ -34,21 +34,17 @@ class Model(nn.Module):
     def forward(
         self,
         st_maps: FloatTensor,
-        # coords: FloatTensor,
         encoder_input_ids: LongTensor,
         decoder_input_ids: LongTensor,
         decoder_attention_mask: LongTensor,
         labels: Optional[LongTensor] = None,
     ) -> Seq2SeqLMOutput:
 
-        # encoder_inputs = torch.cat([st_maps, coords], dim=1)
         t5enc_output = self.t5.encoder(encoder_input_ids.view(-1, encoder_input_ids.size(-1)))
         t5enc_output = t5enc_output.last_hidden_state[:, 0, :]
         t5enc_output = t5enc_output.view(encoder_input_ids.size(0), encoder_input_ids.size(1), -1)
         gtformer_output = self.gtformer(st_maps)
 
-        # encoder_outputs = torch.cat([t5enc_output, gtformer_output], dim=-1)
-        # encoder_outputs = self.layer_norm(self.fn(encoder_outputs))
         encoder_outputs = t5enc_output + gtformer_output
         encoder_outputs = self.layer_norm(encoder_outputs)
         encoder_outputs = BaseModelOutput(last_hidden_state=encoder_outputs)
@@ -65,19 +61,15 @@ class Model(nn.Module):
     def generate(
         self,
         st_maps: FloatTensor,
-        # coords: FloatTensor,
         encoder_input_ids: LongTensor,
         **kwargs,
     ) -> Any:
 
-        # encoder_inputs = torch.cat([st_maps, coords], dim=1)
         t5enc_output = self.t5.encoder(encoder_input_ids.view(-1, encoder_input_ids.size(-1)))
         t5enc_output = t5enc_output.last_hidden_state[:, 0, :]
         t5enc_output = t5enc_output.view(encoder_input_ids.size(0), encoder_input_ids.size(1), -1)
         gtformer_output = self.gtformer(st_maps)
 
-        # encoder_outputs = torch.cat([t5enc_output, gtformer_output], dim=-1)
-        # encoder_outputs = self.layer_norm(self.fn(encoder_outputs))
         encoder_outputs = t5enc_output + gtformer_output
         encoder_outputs = self.layer_norm(encoder_outputs)
         encoder_outputs = BaseModelOutput(last_hidden_state=encoder_outputs)
