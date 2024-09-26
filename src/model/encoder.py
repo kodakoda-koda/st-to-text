@@ -24,22 +24,21 @@ class GTformer(nn.Module):
         self.layers = nn.ModuleList(
             [GTformer_block(d_model, n_heads, d_ff, dropout, n_locations) for _ in range(n_layers)]
         )
-        self.fn = nn.Linear(n_locations, lm_d_model)
-        self.layer_norm = nn.LayerNorm(lm_d_model)
+        self.fn = nn.Linear(30, lm_d_model)
 
-    def forward(self, st_maps: FloatTensor) -> BaseModelOutput:
+    def forward(self, st_maps: FloatTensor) -> FloatTensor:
         for layer in self.layers:
             st_maps = layer(st_maps)
-        out = self.layer_norm(self.fn(st_maps))
+        out = self.fn(st_maps.permute(0, 2, 1))
 
-        return BaseModelOutput(last_hidden_state=out, hidden_states=None, attentions=None)
+        return out
 
 
 class GTformer_block(nn.Module):
     def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float, n_locations: int):
         super(GTformer_block, self).__init__()
         self.t_emb = Embedding(n_locations, d_model)
-        self.s_emb = Embedding(32, d_model)
+        self.s_emb = Embedding(30, d_model)
 
         self.t_transformer = TransformerEncoderLayer(
             d_model=d_model, nhead=n_heads, dim_feedforward=d_ff, dropout=dropout, batch_first=True
@@ -49,8 +48,8 @@ class GTformer_block(nn.Module):
         )
 
         self.t_out = nn.Linear(d_model, n_locations)
-        self.s_out = nn.Linear(d_model, 32)
-        self.layer_norm = nn.LayerNorm(32)
+        self.s_out = nn.Linear(d_model, 30)
+        self.layer_norm = nn.LayerNorm(30)
 
     def forward(self, st_maps: FloatTensor) -> FloatTensor:
         t_maps = self.t_emb(st_maps)

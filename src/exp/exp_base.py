@@ -37,7 +37,7 @@ class Exp_base:
 
     def _bulid_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(self.args.lm_name, legacy=False)
-        tokenizer.add_tokens(["7,"])
+        tokenizer.add_tokens(["7,", "0,", "9,"])
         return tokenizer
 
     def _get_dataloader(self, train_flag: bool):
@@ -49,6 +49,8 @@ class Exp_base:
     def _get_weighted_loss_func(self):
         loss_weight = torch.ones(self.model.vocab_size)
         loss_weight[[6313, 6734, 10823, 993, 2667]] = 5.0
+        loss_weight[[4347, 4482, 6355, 8525, 11116, 11071, 32100, 11864]] = 5.0
+        loss_weight[[209, 204, 220, 314, 305, 431, 489, 505]] = 5.0
         loss_weight = loss_weight.to(self.device).to(self.dtype)
 
         loss_func = CustomLoss(loss_weight, self.writer)

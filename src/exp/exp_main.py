@@ -10,12 +10,12 @@ from tqdm import tqdm
 from transformers import get_constant_schedule_with_warmup, get_cosine_schedule_with_warmup
 
 from src.exp.exp_base import Exp_base
-from src.utils.exp_utils import compute_rouge
+from src.utils.exp_utils import compute_score
 
 logging.basicConfig(
     format="%(asctime)s - %(message)s",
     level=logging.INFO,
-    datefmt="%m/%d %H:%M:%S",
+    datefmt="%m/%d %H:%M",
 )
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class Exp_main(Exp_base):
             total_samples = 0
             for i, batch in enumerate(tqdm(train_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                coords = batch["coords"].to(self.device).to(self.dtype)
+                encoder_input_ids = batch["encoder_input_ids"].to(self.device)
                 decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(self.device)
                 decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
@@ -49,7 +49,7 @@ class Exp_main(Exp_base):
 
                 outputs = self.model(
                     st_maps=st_maps,
-                    coords=coords,
+                    encoder_input_ids=encoder_input_ids,
                     decoder_input_ids=decoder_input_ids,
                     decoder_attention_mask=decoder_attention_mask,
                     labels=labels,
@@ -73,8 +73,8 @@ class Exp_main(Exp_base):
             eval_score, generated_text = self._eval(val_loader)
 
             logger.info(
-                "Epoch {} | Loss: {:.4f} | ROUGE-1: {:.4f} | ROUGE-2: {:.4f} |".format(
-                    epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"]
+                "Epoch {:4d} | Loss: {:.4f} | R-1: {:.4f} | R-2: {:.4f} | Acc: {:.4f} |".format(
+                    epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"], eval_score["accuracy"]
                 )
             )
 
@@ -94,9 +94,8 @@ class Exp_main(Exp_base):
                 with open(self.args.output_dir + f"{self.args.job_id}/generated_text.json", "w") as f:
                     json.dump(generated_text, f)
 
-        self.model.load_state_dict(torch.load(f"./checkpoint/checkpoint.pth"))
-
         # Save model
+        self.model.load_state_dict(torch.load(f"./checkpoint/checkpoint.pth"))
         torch.save(self.model.state_dict(), self.args.output_dir + f"{self.args.job_id}/model.pth")
         self.tokenizer.save_pretrained(self.args.output_dir + f"{self.args.job_id}/tokenizer")
 
@@ -110,7 +109,7 @@ class Exp_main(Exp_base):
         with torch.no_grad():
             for i, batch in enumerate(tqdm(data_loader, leave=False)):
                 st_maps = batch["st_maps"].to(self.device).to(self.dtype)
-                coords = batch["coords"].to(self.device).to(self.dtype)
+                encoder_input_ids = batch["encoder_input_ids"].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
 
                 gen_kwargs = {
@@ -123,7 +122,7 @@ class Exp_main(Exp_base):
 
                 outputs = self.model.generate(
                     st_maps=st_maps,
-                    coords=coords,
+                    encoder_input_ids=encoder_input_ids,
                     **gen_kwargs,
                 )
                 outputs = outputs.view(labels.shape[0], 10, -1)
@@ -134,7 +133,7 @@ class Exp_main(Exp_base):
                 predictions.extend(pred)
                 references.extend(ref)
 
-        score, predictions = compute_rouge(predictions, references, self.tokenizer.tokenize)
+        score, predictions = compute_score(predictions, references, self.tokenizer.tokenize)
 
         generated_text = {"predictions": predictions, "references": references}
 

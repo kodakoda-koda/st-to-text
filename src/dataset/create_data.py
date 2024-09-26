@@ -10,7 +10,7 @@ from src.utils.data_utils import fluctuate, label_text
 logging.basicConfig(
     format="%(asctime)s - %(message)s",
     level=logging.INFO,
-    datefmt="%m/%d %H:%M:%S",
+    datefmt="%m/%d %H:%M",
 )
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
 
     for i in range(n_data):
         # Randomly generate a spot and change
-        fluc_range = np.random.randint(1, max_fluc_range)
+        fluc_range = np.random.randint(3, max_fluc_range)
         fluc_index = np.random.randint(3, time_range - fluc_range - 3)
         start_value = np.random.uniform(0.2, 0.8)
         fluc_list = ["increase", "decrease", "peak", "dip", "flat"]

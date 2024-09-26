@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 logging.basicConfig(
     format="%(asctime)s - %(message)s",
     level=logging.INFO,
-    datefmt="%m/%d %H:%M:%S",
+    datefmt="%m/%d %H:%M",
 )
 logger = logging.getLogger(__name__)
 transformers.logging.set_verbosity_error()
@@ -21,7 +21,7 @@ transformers.logging.set_verbosity_error()
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int, default=2024)
     parser.add_argument("--data_dir", type=str, default="./data/")
     parser.add_argument("--output_dir", type=str, default="./outputs/")
     parser.add_argument("--log_dir", type=str, default="./logs/")
@@ -34,7 +34,7 @@ def main():
     parser.add_argument("--map_size", type=int, default=10)
 
     # Experiment arguments
-    parser.add_argument("--num_epochs", type=int, default=100)
+    parser.add_argument("--num_epochs", type=int, default=300)
     parser.add_argument("--train_batch_size", type=int, default=8)
     parser.add_argument("--eval_batch_size", type=int, default=8)
     parser.add_argument("--lr", type=float, default=1e-4)
@@ -47,7 +47,7 @@ def main():
     parser.add_argument("--n_heads", type=int, default=8)
     parser.add_argument("--d_ff", type=int, default=2048)
     parser.add_argument("--dropout", type=float, default=0.1)
-    parser.add_argument("--n_layers", type=int, default=6)
+    parser.add_argument("--n_layers", type=int, default=3)
     parser.add_argument("--n_locations", type=int, default=100)
 
     args = parser.parse_args()
