@@ -96,8 +96,6 @@ class Exp_main(Exp_base):
                 with open(self.args.output_dir + f"{self.args.job_id}/generated_text.json", "w") as f:
                     json.dump(generated_text, f)
 
-        logger.info("Best score: {:.4f}".format(best_score))
-
         # Save model
         self.model.load_state_dict(torch.load(f"./checkpoint/checkpoint.pth"))
         torch.save(self.model.state_dict(), self.args.output_dir + f"{self.args.job_id}/model.pth")
