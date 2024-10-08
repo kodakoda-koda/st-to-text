@@ -34,20 +34,20 @@ def main():
     parser.add_argument("--map_size", type=int, default=10)
 
     # Experiment arguments
-    parser.add_argument("--num_epochs", type=int, default=300)
+    parser.add_argument("--num_epochs", type=int, default=100)
     parser.add_argument("--train_batch_size", type=int, default=8)
     parser.add_argument("--eval_batch_size", type=int, default=8)
     parser.add_argument("--lr", type=float, default=1e-4)
 
     # Model arguments
-    parser.add_argument("--dtype", type=str, default="bfloat16")
+    parser.add_argument("--dtype", type=str, default="float32")
     parser.add_argument("--lm_name", type=str, default="t5-base")
     parser.add_argument("--decoder_max_length", type=int, default=32)
     parser.add_argument("--d_model", type=int, default=512)
     parser.add_argument("--n_heads", type=int, default=8)
     parser.add_argument("--d_ff", type=int, default=2048)
     parser.add_argument("--dropout", type=float, default=0.1)
-    parser.add_argument("--n_layers", type=int, default=3)
+    parser.add_argument("--n_layers", type=int, default=1)
     parser.add_argument("--n_locations", type=int, default=100)
 
     args = parser.parse_args()
