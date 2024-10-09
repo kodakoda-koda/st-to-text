@@ -73,8 +73,8 @@ class Exp_main(Exp_base):
             eval_score, generated_text = self._eval(val_loader)
 
             logger.info(
-                "Epoch {:4d} | Loss: {:.4f} | R-1: {:.4f} | R-2: {:.4f} | Acc: {:.4f} |".format(
-                    epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"], eval_score["accuracy"]
+                "Epoch {:4d} | Loss: {:.4f} | R-1: {:.4f} | R-2: {:.4f} |".format(
+                    epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"]
                 )
             )
 

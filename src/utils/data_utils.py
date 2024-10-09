@@ -50,4 +50,7 @@ def fluctuate(range_: int, change_range: int, change_index: int, start_value: fl
 
 
 def label_text(spot: List[int], spot_change: str, other_change: str):
-    return f"location {spot} shows a {spot_change}, while other locations show a {other_change}."
+    if spot_change != other_change:
+        return f"location {spot} shows a {spot_change}, while other locations show a {other_change}."
+    else:
+        return f"all locations show a {spot_change}."

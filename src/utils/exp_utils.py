@@ -62,17 +62,9 @@ def compute_score(predictions: List[str], references: List[str], tokenizer) -> T
         new_predictions.append(preds[idx])
         aggregator.add_scores(scores[idx])
 
-    accuracy = Accuracy(tokenizer)
-    accuracies = []
-    for ref, preds in zip(references, new_predictions):
-        acc = accuracy(preds, ref)
-        accuracies.append(acc)
-
     result = aggregator.aggregate()
     for key in result:
         result[key] = result[key].mid.recall
-
-    result["accuracy"] = np.mean(accuracies)
 
     return result, new_predictions
 
