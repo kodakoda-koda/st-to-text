@@ -28,7 +28,7 @@ def main():
     parser.add_argument("--job_id", type=int, default=0)
 
     # Data arguments
-    parser.add_argument("--time_range", type=int, default=30)
+    parser.add_argument("--time_range", type=int, default=60)
     parser.add_argument("--max_fluc_range", type=int, default=10)
     parser.add_argument("--n_data", type=int, default=500)
     parser.add_argument("--map_size", type=int, default=10)

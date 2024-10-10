@@ -27,19 +27,21 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
     for i in range(n_data):
         # Randomly generate a spot and change
         fluc_range = np.random.randint(3, max_fluc_range)
-        fluc_index = np.random.randint(3, time_range - fluc_range - 3)
+        fluc_index = np.random.randint(3, time_range // 3 - fluc_range - 3)
         start_value = np.random.uniform(0.2, 0.8)
         fluc_list = ["increase", "decrease", "peak", "dip", "flat"]
         spot = [np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1)]
+        spot_fluc_pos = np.random.randint(3)  # 0: beggining, 1: middle, 2: end
+        other_fluc_pos = np.random.randint(3)
         spot_change = random.choice(fluc_list)
         other_change = random.choice(fluc_list)
 
         if spot_change == other_change:
-            spot_value = fluctuate(time_range, fluc_range, fluc_index, start_value, spot_change)
+            spot_value = fluctuate(time_range, spot_fluc_pos, fluc_range, fluc_index, start_value, spot_change)
             other_value = spot_value.copy()
         else:
-            spot_value = fluctuate(time_range, fluc_range, fluc_index, start_value, spot_change)
-            other_value = fluctuate(time_range, fluc_range, fluc_index, start_value, other_change)
+            spot_value = fluctuate(time_range, spot_fluc_pos, fluc_range, fluc_index, start_value, spot_change)
+            other_value = fluctuate(time_range, other_fluc_pos, fluc_range, fluc_index, start_value, other_change)
 
         # Replace the spot with the spot value and the surrounding with the other value
         for j in range(map_size):
@@ -59,7 +61,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         coords.append([[[j, k] for k in range(map_size)] for j in range(map_size)])
 
         # Create label text
-        labels.append(label_text(spot, spot_change, other_change))
+        labels.append(label_text(spot, spot_change, spot_fluc_pos, other_change, other_fluc_pos))
         coords_labels.append(spot)
 
     logger.info("Data created")
