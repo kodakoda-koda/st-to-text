@@ -52,7 +52,7 @@ def fluctuate(
 
 
 def label_text(spot: List[int], spot_change: str, spot_fluc_pos: int, other_change: str, other_fluc_pos: int) -> str:
-    period = {0: "beggining", 1: "middle", 2: "end"}
+    period = {0: "beginning", 1: "middle", 2: "end"}
     if spot_change != other_change or spot_fluc_pos != other_fluc_pos:
         if spot_change == "flat":
             spot_text = f"location {spot} shows a {spot_change}"
