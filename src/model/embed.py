@@ -34,7 +34,7 @@ class SpatialEmbedding(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         x = self.embedding(x)
-        x += self.positional_encoding(x)
+        # x += self.positional_encoding(x)
         return x
 
 
