@@ -4,7 +4,7 @@ from torch import FloatTensor
 from torch.nn import TransformerEncoderLayer
 from transformers.modeling_outputs import BaseModelOutput
 
-from src.model.embed import Embedding
+from src.model.embed import SpatialEmbedding, TemporalEmbedding
 
 # from src.model.transformer import TransformerEncoderLayer
 
@@ -37,8 +37,8 @@ class GTformer(nn.Module):
 class GTformer_block(nn.Module):
     def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float, n_locations: int):
         super(GTformer_block, self).__init__()
-        self.t_emb = Embedding(n_locations, d_model)
-        self.s_emb = Embedding(60, d_model)
+        self.t_emb = TemporalEmbedding(n_locations, d_model)
+        self.s_emb = SpatialEmbedding(60, d_model)
 
         self.t_transformer = TransformerEncoderLayer(
             d_model=d_model, nhead=n_heads, dim_feedforward=d_ff, dropout=dropout, batch_first=True

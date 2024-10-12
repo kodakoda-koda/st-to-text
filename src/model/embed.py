@@ -6,9 +6,28 @@ import torch.nn as nn
 from torch import Tensor
 
 
-class Embedding(nn.Module):
+class TemporalEmbedding(nn.Module):
     def __init__(self, n_channels: int, d_model: int):
-        super(Embedding, self).__init__()
+        super(TemporalEmbedding, self).__init__()
+        self.d_model = d_model
+        self.embedding = nn.Linear(n_channels, d_model)
+        self.positional_encoding = PositionalEncoding(d_model)
+
+        self.time_embedding = nn.Embedding(3, d_model)
+        time = torch.tensor([0 for _ in range(0, 20)] + [1 for _ in range(20, 40)] + [2 for _ in range(40, 60)])
+        self.register_buffer("time", time)
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.embedding(x)
+        x += self.positional_encoding(x)
+        x += self.time_embedding(self.time.to(x.device))
+
+        return x
+
+
+class SpatialEmbedding(nn.Module):
+    def __init__(self, n_channels: int, d_model: int):
+        super(SpatialEmbedding, self).__init__()
         self.d_model = d_model
         self.embedding = nn.Linear(n_channels, d_model)
         self.positional_encoding = PositionalEncoding(d_model)
