@@ -24,7 +24,7 @@ class Model(nn.Module):
         t5_config = T5Config()
         t5_config.decoder_start_token_id = 0
         t5_config.num_layers = 1
-        t5_config.num_decoder_layers = 2
+        t5_config.num_decoder_layers = 3
         t5_config.output_hidden_states = True
         self.vocab_size = t5_config.vocab_size
         self.t5 = T5ForConditionalGeneration(t5_config)
