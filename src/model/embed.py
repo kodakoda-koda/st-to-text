@@ -13,8 +13,8 @@ class TemporalEmbedding(nn.Module):
         self.embedding = nn.Linear(n_channels, d_model)
         self.positional_encoding = PositionalEncoding(d_model)
 
-        self.time_embedding = nn.Embedding(3, d_model)
-        time = torch.tensor([0 for _ in range(0, 20)] + [1 for _ in range(20, 40)] + [2 for _ in range(40, 60)])
+        self.time_embedding = nn.Embedding(24, d_model)
+        time = torch.tensor([i for i in range(24)])
         self.register_buffer("time", time)
 
     def forward(self, x: Tensor) -> Tensor:

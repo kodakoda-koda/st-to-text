@@ -26,7 +26,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
 
     for i in range(n_data):
         # Randomly generate a spot and change
-        fluc_list = ["increase", "decrease", "peak", "trough", "flat"]
+        fluc_list = ["increase", "decrease", "peak", "bottom", "flat"]
         spot = [np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1)]
         spot_fluc = random.choice(fluc_list)
         other_fluc = random.choice(fluc_list)

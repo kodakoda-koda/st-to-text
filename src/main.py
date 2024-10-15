@@ -30,7 +30,7 @@ def main():
     # Data arguments
     parser.add_argument("--time_range", type=int, default=24)
     parser.add_argument("--max_fluc_range", type=int, default=10)
-    parser.add_argument("--n_data", type=int, default=500)
+    parser.add_argument("--n_data", type=int, default=5000)
     parser.add_argument("--map_size", type=int, default=10)
 
     # Experiment arguments
