@@ -60,38 +60,37 @@ def fluctuate(fluc: str):
     return np.array(values), ind
 
 
-def label_text(spot, spot_fluc, spot_ind, other_fluc, other_ind):
-    if spot_fluc == other_fluc and spot_ind == other_ind:
+def label_text(spot_list, spot_fluc_list, spot_ind_list, other_fluc, other_ind):
+    if all([spot_fluc == other_fluc for spot_fluc in spot_fluc_list]):
+        if all([spot_ind == other_ind for spot_ind in spot_ind_list]):
+            if other_fluc == "flat":
+                return f"- all areas show a flat trend"
+            elif other_fluc == "peak" or other_fluc == "bottom":
+                return f"- all areas reach the {other_fluc} at {other_ind['fluc_ind']}:00"
+            elif other_fluc == "increase" or other_fluc == "decrease":
+                return f"- all areas {other_fluc} from {other_ind['start_ind']}:00 to {other_ind['end_ind']}:00"
+            else:
+                raise ValueError("Invalid fluctuation type")
+
+    spot_text_list = []
+    for spot, spot_fluc, spot_ind in zip(spot_list, spot_fluc_list, spot_ind_list):
         if spot_fluc == "flat":
-            return f"all areas show a flat trend."
+            spot_text = f"- the area {spot} shows a flat trend"
         elif spot_fluc == "peak" or spot_fluc == "bottom":
-            return f"all areas reach a {spot_fluc} at {spot_ind['fluc_ind']}:00."
+            spot_text = f"- the area {spot} reaches the {spot_fluc} at {spot_ind['fluc_ind']}:00"
         elif spot_fluc == "increase" or spot_fluc == "decrease":
-            return f"all areas {spot_fluc} from {spot_ind['start_ind']}:00 to {spot_ind['end_ind']}:00."
+            spot_text = f"- the area {spot} {spot_fluc}s from {spot_ind['start_ind']}:00 to {spot_ind['end_ind']}:00"
         else:
             raise ValueError("Invalid fluctuation type")
-
-    if spot_fluc == "flat":
-        spot_text = f"the area {spot} shows a flat trend"
-    elif spot_fluc == "peak" or spot_fluc == "bottom":
-        spot_text = f"the area {spot} reaches the {spot_fluc} at {spot_ind['fluc_ind']}:00"
-    elif spot_fluc == "increase" or spot_fluc == "decrease":
-        spot_text = f"the area {spot} {spot_fluc}s from {spot_ind['start_ind']}:00 to {spot_ind['end_ind']}:00"
-    else:
-        raise ValueError("Invalid fluctuation type")
+        spot_text_list.append(spot_text)
 
     if other_fluc == "flat":
-        other_text = f"the other areas show a flat trend."
+        other_text = f"- the other areas show a flat trend"
     elif other_fluc == "peak" or other_fluc == "bottom":
-        other_text = f"the other areas reach the {other_fluc} at {other_ind['fluc_ind']}:00."
+        other_text = f"- the other areas reach the {other_fluc} at {other_ind['fluc_ind']}:00"
     elif other_fluc == "increase" or other_fluc == "decrease":
-        other_text = f"the other areas {other_fluc} from {other_ind['start_ind']}:00 to {other_ind['end_ind']}:00."
+        other_text = f"- the other areas {other_fluc} from {other_ind['start_ind']}:00 to {other_ind['end_ind']}:00"
     else:
         raise ValueError("Invalid fluctuation type")
 
-    if spot_fluc == other_fluc:
-        conj = "and"
-    else:
-        conj = "while"
-
-    return f"{spot_text}, {conj} {other_text}"
+    return f"{"\n".join(spot_text_list)}\n{other_text}"

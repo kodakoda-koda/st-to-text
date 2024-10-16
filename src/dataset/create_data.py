@@ -27,22 +27,26 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
     for i in range(n_data):
         # Randomly generate a spot and change
         fluc_list = ["increase", "decrease", "peak", "bottom", "flat"]
-        spot = [np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1)]
-        spot_fluc = random.choice(fluc_list)
+        n_spot = np.random.randint(1, 4)
+        spot_list = [[np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1)] for _ in range(n_spot)]
+        spot_set = set([tuple(x) for x in spot_list])
+        spot_list = [list(x) for x in spot_set]
+        spot_fluc_list = [random.choice(fluc_list) for _ in range(len(spot_list))]
         other_fluc = random.choice(fluc_list)
 
-        spot_values, spot_ind = fluctuate(spot_fluc)
+        spot_values_list = []
+        spot_ind_list = []
+        for j in range(len(spot_list)):
+            spot_values, spot_ind = fluctuate(spot_fluc_list[j])
+            spot_values_list.append(spot_values)
+            spot_ind_list.append(spot_ind)
         other_values, other_ind = fluctuate(other_fluc)
 
         # Replace the spot with the spot value and the surrounding with the other value
         for j in range(map_size):
             for k in range(map_size):
-                if [j, k] == spot:
-                    st_maps[i, :, j, k] = spot_values
-                elif j == spot[0] and (k == spot[1] - 1 or k == spot[1] + 1):
-                    st_maps[i, :, j, k] = (spot_values + other_values) / 2
-                elif k == spot[1] and (j == spot[0] - 1 or j == spot[0] + 1):
-                    st_maps[i, :, j, k] = (spot_values + other_values) / 2
+                if [j, k] in spot_list:
+                    st_maps[i, :, j, k] = spot_values_list[spot_list.index([j, k])]
                 else:
                     st_maps[i, :, j, k] = other_values
         noise = np.random.randn(time_range, map_size, map_size) * 0.02
@@ -52,8 +56,8 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         coords.append([[[j, k] for k in range(map_size)] for j in range(map_size)])
 
         # Create label text
-        labels.append(label_text(spot, spot_fluc, spot_ind, other_fluc, other_ind))
-        coords_labels.append(spot)
+        labels.append(label_text(spot_list, spot_fluc_list, spot_ind_list, other_fluc, other_ind))
+        coords_labels.append(spot_list)
 
     logger.info("Data created")
 

@@ -42,7 +42,7 @@ def main():
     # Model arguments
     parser.add_argument("--dtype", type=str, default="float32")
     parser.add_argument("--lm_name", type=str, default="t5-base")
-    parser.add_argument("--decoder_max_length", type=int, default=32)
+    parser.add_argument("--decoder_max_length", type=int, default=64)
     parser.add_argument("--d_model", type=int, default=512)
     parser.add_argument("--n_heads", type=int, default=8)
     parser.add_argument("--d_ff", type=int, default=2048)

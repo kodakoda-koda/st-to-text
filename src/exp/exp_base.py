@@ -3,6 +3,7 @@ import logging
 
 import torch
 import torch.nn as nn
+from tokenizers import AddedToken
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 from transformers import AutoTokenizer
@@ -37,6 +38,7 @@ class Exp_base:
 
     def _bulid_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(self.args.lm_name, legacy=False)
+        tokenizer.add_special_tokens({"additional_special_tokens": [AddedToken("\n")]})
         tokenizer.add_tokens(["7,", "0,", "9,"])
         return tokenizer
 
