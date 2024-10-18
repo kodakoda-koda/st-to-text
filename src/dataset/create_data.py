@@ -31,6 +31,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         spot_list = [[np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1)] for _ in range(n_spot)]
         spot_set = set([tuple(x) for x in spot_list])
         spot_list = [list(x) for x in spot_set]
+        spot_list = sorted(spot_list)
         spot_fluc_list = [random.choice(fluc_list) for _ in range(len(spot_list))]
         other_fluc = random.choice(fluc_list)
 
