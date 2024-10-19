@@ -27,13 +27,13 @@ def fluctuate(fluc: str):
         start_val = np.random.uniform(0.2, 0.8)
         end_val = np.random.uniform(start_val + 0.2, 1.0)
         start_ind = np.random.randint(0, 20)
-        end_ind = np.random.randint(start_ind + 2, 24)
+        end_ind = np.random.randint(start_ind + 2, min(start_ind + 6, 24))
         ind = {"start_ind": start_ind, "fluc_ind": None, "end_ind": end_ind}
     elif fluc == "decrease":
         start_val = np.random.uniform(0.2, 0.8)
         end_val = np.random.uniform(0.0, start_val - 0.2)
         start_ind = np.random.randint(0, 20)
-        end_ind = np.random.randint(start_ind + 2, 24)
+        end_ind = np.random.randint(start_ind + 2, min(start_ind + 6, 24))
         ind = {"start_ind": start_ind, "fluc_ind": None, "end_ind": end_ind}
     else:
         raise ValueError("Invalid fluctuation type")
