@@ -50,7 +50,7 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
                     st_maps[i, :, j, k] = spot_values_list[spot_list.index([j, k])]
                 else:
                     st_maps[i, :, j, k] = other_values
-        noise = np.random.randn(time_range, map_size, map_size) * 0.01
+        noise = np.random.randn(time_range, map_size, map_size) * 0.02
         st_maps[i] += noise
 
         # Create coordinates

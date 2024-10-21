@@ -47,7 +47,7 @@ def main():
     parser.add_argument("--n_heads", type=int, default=8)
     parser.add_argument("--d_ff", type=int, default=2048)
     parser.add_argument("--dropout", type=float, default=0.1)
-    parser.add_argument("--n_layers", type=int, default=1)
+    parser.add_argument("--n_layers", type=int, default=2)
     parser.add_argument("--n_locations", type=int, default=100)
 
     args = parser.parse_args()
