@@ -26,10 +26,10 @@ class Exp_main(Exp_base):
         val_loader = self._get_dataloader(train_flag=False)
 
         optimizer = AdamW(self.model.parameters(), lr=self.args.lr)
-        # scheduler = get_cosine_schedule_with_warmup(
-        #     optimizer, num_warmup_steps=len(train_loader), num_training_steps=len(train_loader) * self.args.num_epochs
-        # )
-        scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=len(train_loader))
+        scheduler = get_cosine_schedule_with_warmup(
+            optimizer, num_warmup_steps=len(train_loader), num_training_steps=len(train_loader) * self.args.num_epochs
+        )
+        # scheduler = get_constant_schedule_with_warmup(optimizer, num_warmup_steps=len(train_loader))
 
         best_score = 0.0
         for epoch in range(self.args.num_epochs):
@@ -43,7 +43,7 @@ class Exp_main(Exp_base):
                 decoder_input_ids = batch["decoder_input_ids"][:, :-1].to(self.device)
                 decoder_attention_mask = batch["decoder_attention_mask"][:, :-1].to(self.device)
                 labels = batch["decoder_input_ids"][:, 1:].to(self.device)
-                coords_labels = batch["coords_labels"].to(self.device).to(self.dtype)
+                # coords_labels = batch["coords_labels"].to(self.device).to(self.dtype)
 
                 labels[labels == self.tokenizer.pad_token_id] = -100
 
@@ -56,7 +56,7 @@ class Exp_main(Exp_base):
                 )
                 logits = outputs.logits
 
-                loss = self.loss_func(logits, labels, coords_labels, epoch * len(train_loader) + i)
+                loss = self.loss_func(logits, labels, epoch * len(train_loader) + i)
 
                 loss.backward()
                 optimizer.step()

@@ -3,6 +3,7 @@ import logging
 
 import torch
 import torch.nn as nn
+from tokenizers import AddedToken
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 from transformers import AutoTokenizer
@@ -38,6 +39,7 @@ class Exp_base:
     def _bulid_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(self.args.lm_name, legacy=False)
         tokenizer.add_tokens(["7,", "0,", "9,"])
+        tokenizer.add_tokens(AddedToken("\n", normalized=False))
         return tokenizer
 
     def _get_dataloader(self, train_flag: bool):
@@ -47,12 +49,13 @@ class Exp_base:
         return dataloader
 
     def _get_weighted_loss_func(self):
-        # ToDo: token "all" weight should be larger than other tokens
         loss_weight = torch.ones(self.model.vocab_size)
-        loss_weight[[6313, 6734, 10823, 993, 2667]] = 5.0
-        loss_weight[[1849, 2214, 414]] = 5.0
-        loss_weight[[4347, 4482, 6355, 8525, 11116, 11071, 32100, 11864]] = 5.0
-        loss_weight[[209, 204, 220, 314, 305, 431, 489, 505]] = 5.0
+
+        loss_weight[[6313, 6734, 2007, 993, 2667]] = 3.0 # decrease, increase, flat, peak, bottom
+        loss_weight[[5386]] = 3.0 # increases
+        loss_weight[[1267, 504, 1535]] = 3.0 # shows, show, reach
+        loss_weight[[4347, 4482, 6355, 8525, 11116, 11071, 32100, 11864]] = 3.0 # num,
+        loss_weight[[209, 204, 220, 314, 305, 431, 489, 505]] = 3.0 # num
         loss_weight = loss_weight.to(self.device).to(self.dtype)
 
         loss_func = CustomLoss(loss_weight, self.writer)

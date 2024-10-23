@@ -26,34 +26,30 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
 
     for i in range(n_data):
         # Randomly generate a spot and change
-        fluc_range = np.random.randint(3, max_fluc_range)
-        fluc_index = np.random.randint(3, time_range // 3 - fluc_range - 3)
-        start_value = np.random.uniform(0.2, 0.8)
-        fluc_list = ["increase", "decrease", "peak", "dip", "flat"]
-        spot = [np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1)]
-        spot_fluc_pos = np.random.randint(3)  # 0: beggining, 1: middle, 2: end
-        other_fluc_pos = np.random.randint(3)
-        spot_change = random.choice(fluc_list)
-        other_change = random.choice(fluc_list)
+        fluc_list = ["increase", "decrease", "peak", "bottom", "flat"]
+        n_spot = np.random.randint(1, 4)
+        spot_list = [[np.random.randint(1, map_size - 1), np.random.randint(1, map_size - 1)] for _ in range(n_spot)]
+        spot_set = set([tuple(x) for x in spot_list])
+        spot_list = [list(x) for x in spot_set]
+        spot_list = sorted(spot_list)
+        spot_fluc_list = [random.choice(fluc_list) for _ in range(len(spot_list))]
+        other_fluc = random.choice(fluc_list)
 
-        if spot_change == other_change:
-            spot_value = fluctuate(time_range, spot_fluc_pos, fluc_range, fluc_index, start_value, spot_change)
-            other_value = spot_value.copy()
-        else:
-            spot_value = fluctuate(time_range, spot_fluc_pos, fluc_range, fluc_index, start_value, spot_change)
-            other_value = fluctuate(time_range, other_fluc_pos, fluc_range, fluc_index, start_value, other_change)
+        spot_values_list = []
+        spot_ind_list = []
+        for j in range(len(spot_list)):
+            spot_values, spot_ind = fluctuate(spot_fluc_list[j])
+            spot_values_list.append(spot_values)
+            spot_ind_list.append(spot_ind)
+        other_values, other_ind = fluctuate(other_fluc)
 
         # Replace the spot with the spot value and the surrounding with the other value
         for j in range(map_size):
             for k in range(map_size):
-                if [j, k] == spot:
-                    st_maps[i, :, j, k] = spot_value
-                elif j == spot[0] and (k == spot[1] - 1 or k == spot[1] + 1):
-                    st_maps[i, :, j, k] = (spot_value + other_value) / 2
-                elif k == spot[1] and (j == spot[0] - 1 or j == spot[0] + 1):
-                    st_maps[i, :, j, k] = (spot_value + other_value) / 2
+                if [j, k] in spot_list:
+                    st_maps[i, :, j, k] = spot_values_list[spot_list.index([j, k])]
                 else:
-                    st_maps[i, :, j, k] = other_value
+                    st_maps[i, :, j, k] = other_values
         noise = np.random.randn(time_range, map_size, map_size) * 0.02
         st_maps[i] += noise
 
@@ -61,8 +57,8 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         coords.append([[[j, k] for k in range(map_size)] for j in range(map_size)])
 
         # Create label text
-        labels.append(label_text(spot, spot_change, spot_fluc_pos, other_change, other_fluc_pos))
-        coords_labels.append(spot)
+        labels.append(label_text(spot_list, spot_fluc_list, spot_ind_list, other_fluc, other_ind))
+        coords_labels.append(spot_list)
 
     logger.info("Data created")
 
