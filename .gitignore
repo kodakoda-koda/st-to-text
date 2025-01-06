@@ -5,6 +5,8 @@
 
 # data
 data/*
+data_/*
+raw_data/*
 
 # logs
 logs/*
@@ -17,3 +19,4 @@ poetry.lock
 check/*.py
 checkpoint/*
 outputs/*
+tmp/*
