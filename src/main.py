@@ -60,6 +60,7 @@ def main():
     # Train and evaluate
     exp = Exp_main(args)
     exp.train()
+    exp.test()
 
 
 if __name__ == "__main__":

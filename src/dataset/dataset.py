@@ -49,13 +49,13 @@ class CustomDataset(Dataset):
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
 
         if self.train_flag:
-            self.st_maps = st_maps[: int(0.95 * len(st_maps))]
-            # self.coords_labels = coords_labels[: int(0.8 * len(coords_labels))]
-            labels = labels[: int(0.95 * len(labels))]
+            self.st_maps = st_maps[: int(0.9 * len(st_maps))]
+            # self.coords_labels = coords_labels[: int(0.9 * len(coords_labels))]
+            labels = labels[: int(0.9 * len(labels))]
         else:
-            self.st_maps = st_maps[int(0.95 * len(st_maps)) :]
-            # self.coords_labels = coords_labels[int(0.8 * len(coords_labels)) :]
-            labels = labels[int(0.95 * len(labels)) :]
+            self.st_maps = st_maps[int(0.9 * len(st_maps)) :]
+            # self.coords_labels = coords_labels[int(0.9 * len(coords_labels)) :]
+            labels = labels[int(0.9 * len(labels)) :]
 
         labels = ["<pad>" + label for label in labels]
         tokenized_labels = self.tokenizer.batch_encode_plus(

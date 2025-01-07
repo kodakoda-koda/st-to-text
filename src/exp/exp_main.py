@@ -70,11 +70,11 @@ class Exp_main(Exp_base):
                 total_samples += 1
 
             avg_loss = total_loss / total_samples
-            eval_score, generated_text = self._eval(val_loader)
+            eval_score, _ = self._eval(val_loader)
 
             logger.info(
-                "Epoch {:4d} | Loss: {:.4f} | R-1: {:.4f} | R-2: {:.4f} |".format(
-                    epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"]
+                "Epoch {:4d} | Loss: {:.4f} | R-1: {:.4f} | R-2: {:.4f} | BLEU: {:.4f}".format(
+                    epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"], eval_score["bleu"]
                 )
             )
 
@@ -89,17 +89,31 @@ class Exp_main(Exp_base):
                     os.makedirs("./checkpoint")
                 torch.save(self.model.state_dict(), f"./checkpoint/checkpoint.pth")
 
-                if not os.path.exists(self.args.output_dir + f"{self.args.job_id}"):
-                    os.makedirs(self.args.output_dir + f"{self.args.job_id}")
-                with open(self.args.output_dir + f"{self.args.job_id}/generated_text.json", "w") as f:
-                    json.dump(generated_text, f)
-
         # Save model
+        if not os.path.exists(self.args.output_dir + f"{self.args.job_id}"):
+            os.makedirs(self.args.output_dir + f"{self.args.job_id}")
         self.model.load_state_dict(torch.load(f"./checkpoint/checkpoint.pth"))
         torch.save(self.model.state_dict(), self.args.output_dir + f"{self.args.job_id}/model.pth")
         self.tokenizer.save_pretrained(self.args.output_dir + f"{self.args.job_id}/tokenizer")
 
         self.writer.close()
+
+    def test(self):
+        test_loader = self._get_dataloader(train_flag=False)
+
+        self.model.load_state_dict(torch.load(self.args.output_dir + f"{self.args.job_id}/model.pth"))
+        test_score, generated_text = self._eval(test_loader)
+
+        logger.info(
+            "Final Score | R-1: {:.4f} | R-2: {:.4f} | BLEU: {:.4f}".format(
+                test_score["rouge1"], test_score["rouge2"], test_score["bleu"]
+            )
+        )
+
+        if not os.path.exists(self.args.output_dir + f"{self.args.job_id}"):
+            os.makedirs(self.args.output_dir + f"{self.args.job_id}")
+        with open(self.args.output_dir + f"{self.args.job_id}/generated_text.json", "w") as f:
+            json.dump(generated_text, f)
 
     def _eval(self, data_loader: DataLoader) -> Tuple[Dict[str, float], Dict[str, list]]:
         self.model.eval()
