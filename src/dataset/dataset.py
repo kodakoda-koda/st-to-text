@@ -31,7 +31,6 @@ class CustomDataset(Dataset):
             "encoder_input_ids": self.encoder_input_ids,
             "decoder_input_ids": self.decoder_input_ids[idx],
             "decoder_attention_mask": self.decoder_attention_mask[idx],
-            # "coords_labels": self.coords_labels[idx],
         }
 
     def __load_data__(self) -> None:
@@ -44,17 +43,14 @@ class CustomDataset(Dataset):
             data = json.load(f)
         st_maps = torch.tensor(data["st_maps"])
         labels = data["labels"]
-        # coords_labels = torch.tensor(data["coords_labels"])
 
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.9 * len(st_maps))]
-            # self.coords_labels = coords_labels[: int(0.9 * len(coords_labels))]
             labels = labels[: int(0.9 * len(labels))]
         else:
             self.st_maps = st_maps[int(0.9 * len(st_maps)) :]
-            # self.coords_labels = coords_labels[int(0.9 * len(coords_labels)) :]
             labels = labels[int(0.9 * len(labels)) :]
 
         labels = ["<pad>" + label for label in labels]
