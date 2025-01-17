@@ -7,17 +7,8 @@ import numpy as np
 
 from src.utils.data_utils import fluctuate, label_text
 
-logging.basicConfig(
-    format="%(asctime)s - %(message)s",
-    level=logging.INFO,
-    datefmt="%m/%d %H:%M",
-)
-logger = logging.getLogger(__name__)
-
 
 def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int, data_dir: str):
-    logger.info(f"Create {n_data} data")
-
     # Create data
     st_maps = np.zeros((n_data, time_range, map_size, map_size))
     labels = []
@@ -61,11 +52,8 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         coords_labels.append(spot_list)
 
     data = {"st_maps": st_maps.tolist(), "coords": coords, "labels": labels, "coords_labels": coords_labels}
-    logger.info("Data created")
 
     # Save data
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     json.dump(data, open(data_dir + "data.json", "w"))
-
-    logger.info("Data saved")

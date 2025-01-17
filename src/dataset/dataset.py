@@ -1,4 +1,5 @@
 import argparse
+import logging
 import json
 import os
 
@@ -14,10 +15,12 @@ class CustomDataset(Dataset):
     def __init__(
         self,
         args: argparse.Namespace,
+        logger: logging.Logger,
         tokenizer: transformers.PreTrainedTokenizer,
         train_flag: bool = True,
     ):
         self.args = args
+        self.logger = logger
         self.tokenizer = tokenizer
         self.train_flag = train_flag
         self.__load_data__()
@@ -35,6 +38,7 @@ class CustomDataset(Dataset):
 
     def __load_data__(self) -> None:
         if not os.path.exists(self.args.data_dir + "data.json"):
+            self.logger.info("Creating data...")
             create_data(
                 self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
             )
