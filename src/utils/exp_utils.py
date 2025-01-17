@@ -1,6 +1,7 @@
 import re
 from typing import List, Tuple
 
+import evaluate
 import numpy as np
 import torch
 import torch.nn as nn
@@ -17,24 +18,45 @@ class Tokenizer:
         return self.tokenizer_func(text)
 
 
-def compute_score(predictions: List[str], references: List[str], tokenizer) -> Tuple[dict, List[str]]:
-    rouge_types = ["rouge1", "rouge2"]
+def compute_score(predictions: List[str], references: List[str], tokenizer):
+    predictions = aggregate_prediction(predictions, references, tokenizer)
+
+    rouge = evaluate.load("rouge")
+    bleu = evaluate.load("bleu")
+
+    rouge_score = rouge.compute(
+        predictions=predictions,
+        references=references,
+        rouge_types=["rouge1", "rouge2"],
+        tokenizer=tokenizer,
+    )
+    bleu_score = bleu.compute(
+        predictions=predictions,
+        references=references,
+        tokenizer=tokenizer,
+    )
+
+    scores = {
+        "rouge1": rouge_score["rouge1"],
+        "rouge2": rouge_score["rouge2"],
+        "bleu": bleu_score["bleu"],
+    }
+
+    return scores, predictions
+
+
+def aggregate_prediction(predictions: List[str], references: List[str], tokenizer) -> List[str]:
+    rouge_types = ["rouge2"]
     tokenizer = Tokenizer(tokenizer)
-    scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=False, tokenizer=tokenizer)
-    aggregator = scoring.BootstrapAggregator()
+    rouge_scorer_ = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=False, tokenizer=tokenizer)
 
     new_predictions = []
     for ref, preds in zip(references, predictions):
-        scores = [scorer.score(ref, pred) for pred in preds]
-        idx = np.argmax([score["rouge2"].fmeasure for score in scores])
+        scores = [rouge_scorer_.score(ref, pred)["rouge2"].fmeasure for pred in preds]
+        idx = np.argmax(scores)
         new_predictions.append(preds[idx])
-        aggregator.add_scores(scores[idx])
 
-    result = aggregator.aggregate()
-    for key in result:
-        result[key] = result[key].mid.fmeasure
-
-    return result, new_predictions
+    return new_predictions
 
 
 class CustomLoss:

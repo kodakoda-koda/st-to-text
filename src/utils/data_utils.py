@@ -93,4 +93,5 @@ def label_text(spot_list, spot_fluc_list, spot_ind_list, other_fluc, other_ind):
     else:
         raise ValueError("Invalid fluctuation type")
 
-    return f"{"\n".join(spot_text_list)}\n{other_text}"
+    spot_text_str = "\n".join(spot_text_list)
+    return f"{spot_text_str}\n{other_text}"
