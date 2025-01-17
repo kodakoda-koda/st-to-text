@@ -1,0 +1,7 @@
+Python == 3.12
+evaluate == 0.4.2
+rouge-score == 0.1.2
+sentencepiece == 0.2.0
+transformers == 4.44.2
+torch == 2.4.0
+panads == 2.2.2
