@@ -12,13 +12,6 @@ from transformers import get_constant_schedule_with_warmup, get_cosine_schedule_
 from src.exp.exp_base import Exp_base
 from src.utils.exp_utils import compute_score
 
-logging.basicConfig(
-    format="%(asctime)s - %(message)s",
-    level=logging.INFO,
-    datefmt="%m/%d %H:%M",
-)
-logger = logging.getLogger(__name__)
-
 
 class Exp_main(Exp_base):
     def train(self):
@@ -29,6 +22,8 @@ class Exp_main(Exp_base):
         scheduler = get_cosine_schedule_with_warmup(
             optimizer, num_warmup_steps=len(train_loader), num_training_steps=len(train_loader) * self.args.num_epochs
         )
+
+        self.logger.info("Start training")
 
         best_score = 0.0
         for epoch in range(self.args.num_epochs):
@@ -70,7 +65,7 @@ class Exp_main(Exp_base):
             avg_loss = total_loss / total_samples
             eval_score, _ = self._eval(val_loader)
 
-            logger.info(
+            self.logger.info(
                 "Epoch {:4d} | Loss: {:.4f} | R-1: {:.4f} | R-2: {:.4f} | BLEU: {:.4f}".format(
                     epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"], eval_score["bleu"]
                 )
@@ -82,7 +77,7 @@ class Exp_main(Exp_base):
             if eval_score["rouge2"] > best_score:
                 best_score = eval_score["rouge2"]
 
-                logger.info("Saving model with score: {:.4f}".format(best_score))
+                self.logger.info("Saving model with score: {:.4f}".format(best_score))
                 if not os.path.exists("./checkpoint"):
                     os.makedirs("./checkpoint")
                 torch.save(self.model.state_dict(), f"./checkpoint/checkpoint.pth")
@@ -102,7 +97,7 @@ class Exp_main(Exp_base):
         self.model.load_state_dict(torch.load(self.args.output_dir + f"{self.args.job_id}/model.pth"))
         test_score, generated_text = self._eval(test_loader)
 
-        logger.info(
+        self.logger.info(
             "Final Score | R-1: {:.4f} | R-2: {:.4f} | BLEU: {:.4f}".format(
                 test_score["rouge1"], test_score["rouge2"], test_score["bleu"]
             )

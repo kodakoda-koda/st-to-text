@@ -6,15 +6,8 @@ import transformers
 from transformers import set_seed
 
 from src.exp.exp_main import Exp_main
-from src.utils.main_utils import assert_arguments, log_arguments
 
 warnings.filterwarnings("ignore")
-logging.basicConfig(
-    format="%(asctime)s - %(message)s",
-    level=logging.INFO,
-    datefmt="%m/%d %H:%M",
-)
-logger = logging.getLogger(__name__)
 transformers.logging.set_verbosity_error()
 
 
@@ -51,14 +44,32 @@ def main():
     parser.add_argument("--n_locations", type=int, default=100)
 
     args = parser.parse_args()
-    assert_arguments(args)
-    log_arguments(args)
+
+    # Assert
+    assert args.dtype in [
+        "bfloat16",
+        "float32",
+    ], f"dtype should be either 'bfloat16' or 'float32', but got {args.dtype}"
+    assert (
+        args.n_locations == args.map_size**2
+    ), f"n_locations should be equal to map_size ** 2, but got {args.n_locations}"
+
+    # Set logger
+    logging.basicConfig(
+        format="%(asctime)s - %(message)s",
+        level=logging.INFO,
+        datefmt="%m/%d %H:%M",
+    )
+    logger = logging.getLogger(__name__)
+
+    # Log arguments
+    logger.info(f"job_id: {args.job_id}")
 
     # Set seed
     set_seed(args.seed)
 
     # Train and evaluate
-    exp = Exp_main(args)
+    exp = Exp_main(args, logger)
     exp.train()
     exp.test()
 

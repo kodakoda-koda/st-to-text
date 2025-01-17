@@ -1,4 +1,5 @@
 import argparse
+import logging
 import json
 import os
 
@@ -14,10 +15,12 @@ class CustomDataset(Dataset):
     def __init__(
         self,
         args: argparse.Namespace,
+        logger: logging.Logger,
         tokenizer: transformers.PreTrainedTokenizer,
         train_flag: bool = True,
     ):
         self.args = args
+        self.logger = logger
         self.tokenizer = tokenizer
         self.train_flag = train_flag
         self.__load_data__()
@@ -35,16 +38,15 @@ class CustomDataset(Dataset):
 
     def __load_data__(self) -> None:
         if not os.path.exists(self.args.data_dir + "data.json"):
+            self.logger.info("Creating data...")
             create_data(
                 self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
             )
 
-        with open(self.args.data_dir + "data.json", "r") as f:
-            data = json.load(f)
+        data = json.load(open(self.args.data_dir + "data.json", "r"))
         st_maps = torch.tensor(data["st_maps"])
-        labels = data["labels"]
-
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
+        labels = data["labels"]
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.9 * len(st_maps))]

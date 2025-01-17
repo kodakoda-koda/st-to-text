@@ -14,8 +14,9 @@ from src.utils.exp_utils import CustomLoss
 
 
 class Exp_base:
-    def __init__(self, args: argparse.Namespace):
+    def __init__(self, args: argparse.Namespace, logger: logging.Logger):
         self.args = args
+        self.logger = logger
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float32
         self.writer = SummaryWriter(log_dir=args.log_dir + f"{args.job_id}")
@@ -43,7 +44,7 @@ class Exp_base:
         return tokenizer
 
     def _get_dataloader(self, train_flag: bool):
-        dataset = CustomDataset(self.args, self.tokenizer, train_flag)
+        dataset = CustomDataset(self.args, self.logger, self.tokenizer, train_flag)
         batch_size = self.args.train_batch_size if train_flag else self.args.eval_batch_size
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=train_flag)
         return dataloader

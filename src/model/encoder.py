@@ -6,8 +6,6 @@ from transformers.modeling_outputs import BaseModelOutput
 
 from src.model.embed import SpatialEmbedding, TemporalEmbedding
 
-# from src.model.transformer import TransformerEncoderLayer
-
 
 class GTformer(nn.Module):
     def __init__(
