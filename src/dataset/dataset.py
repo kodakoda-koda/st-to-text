@@ -39,12 +39,10 @@ class CustomDataset(Dataset):
                 self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
             )
 
-        with open(self.args.data_dir + "data.json", "r") as f:
-            data = json.load(f)
+        data = json.load(open(self.args.data_dir + "data.json", "r"))
         st_maps = torch.tensor(data["st_maps"])
-        labels = data["labels"]
-
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
+        labels = data["labels"]
 
         if self.train_flag:
             self.st_maps = st_maps[: int(0.9 * len(st_maps))]
