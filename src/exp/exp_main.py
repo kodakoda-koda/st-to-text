@@ -15,12 +15,14 @@ from src.utils.exp_utils import compute_score
 
 class Exp_main(Exp_base):
     def train(self):
-        train_loader = self._get_dataloader(train_flag=True)
-        val_loader = self._get_dataloader(train_flag=False)
+        train_loader = self._get_dataloader(flag="train")
+        val_loader = self._get_dataloader(flag="val")
 
         optimizer = AdamW(self.model.parameters(), lr=self.args.lr)
         scheduler = get_cosine_schedule_with_warmup(
-            optimizer, num_warmup_steps=len(train_loader), num_training_steps=len(train_loader) * self.args.num_epochs
+            optimizer,
+            num_warmup_steps=len(train_loader),
+            num_training_steps=len(train_loader) * self.args.num_epochs,
         )
 
         self.logger.info("Start training")
@@ -57,7 +59,11 @@ class Exp_main(Exp_base):
                 scheduler.step()
 
                 self.writer.add_scalar("Loss/train", loss.item(), epoch * len(train_loader) + i)
-                self.writer.add_scalar("Learning Rate", scheduler.get_last_lr()[0], epoch * len(train_loader) + i)
+                self.writer.add_scalar(
+                    "Learning Rate",
+                    scheduler.get_last_lr()[0],
+                    epoch * len(train_loader) + i,
+                )
 
                 total_loss += loss.item()
                 total_samples += 1
@@ -67,7 +73,11 @@ class Exp_main(Exp_base):
 
             self.logger.info(
                 "Epoch {:4d} | Loss: {:.4f} | R-1: {:.4f} | R-2: {:.4f} | BLEU: {:.4f}".format(
-                    epoch + 1, avg_loss, eval_score["rouge1"], eval_score["rouge2"], eval_score["bleu"]
+                    epoch + 1,
+                    avg_loss,
+                    eval_score["rouge1"],
+                    eval_score["rouge2"],
+                    eval_score["bleu"],
                 )
             )
 
@@ -86,13 +96,16 @@ class Exp_main(Exp_base):
         if not os.path.exists(self.args.output_dir + f"{self.args.job_id}"):
             os.makedirs(self.args.output_dir + f"{self.args.job_id}")
         self.model.load_state_dict(torch.load(f"./checkpoint/checkpoint.pth"))
-        torch.save(self.model.state_dict(), self.args.output_dir + f"{self.args.job_id}/model.pth")
+        torch.save(
+            self.model.state_dict(),
+            self.args.output_dir + f"{self.args.job_id}/model.pth",
+        )
         self.tokenizer.save_pretrained(self.args.output_dir + f"{self.args.job_id}/tokenizer")
 
         self.writer.close()
 
     def test(self):
-        test_loader = self._get_dataloader(train_flag=False)
+        test_loader = self._get_dataloader(flag="test")
 
         self.model.load_state_dict(torch.load(self.args.output_dir + f"{self.args.job_id}/model.pth"))
         test_score, generated_text = self._eval(test_loader)

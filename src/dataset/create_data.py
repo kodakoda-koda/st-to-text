@@ -51,7 +51,12 @@ def create_data(time_range: int, max_fluc_range: int, n_data: int, map_size: int
         labels.append(label_text(spot_list, spot_fluc_list, spot_ind_list, other_fluc, other_ind))
         coords_labels.append(spot_list)
 
-    data = {"st_maps": st_maps.tolist(), "coords": coords, "labels": labels, "coords_labels": coords_labels}
+    data = {
+        "st_maps": st_maps.tolist(),
+        "coords": coords,
+        "labels": labels,
+        "coords_labels": coords_labels,
+    }
 
     # Save data
     if not os.path.exists(data_dir):
