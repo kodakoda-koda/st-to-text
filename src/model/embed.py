@@ -7,14 +7,14 @@ from torch import Tensor
 
 
 class TemporalEmbedding(nn.Module):
-    def __init__(self, n_channels: int, d_model: int):
+    def __init__(self, n_channels: int, time_steps: int, d_model: int):
         super(TemporalEmbedding, self).__init__()
         self.d_model = d_model
         self.embedding = nn.Linear(n_channels, d_model)
         self.positional_encoding = PositionalEncoding(d_model)
 
-        self.time_embedding = nn.Embedding(24, d_model)
-        time = torch.tensor([i for i in range(24)])
+        self.time_embedding = nn.Embedding(time_steps, d_model)
+        time = torch.tensor([i for i in range(time_steps)])
         self.register_buffer("time", time)
 
     def forward(self, x: Tensor) -> Tensor:

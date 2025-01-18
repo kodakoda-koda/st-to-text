@@ -6,7 +6,7 @@ import torch.nn as nn
 from tokenizers import AddedToken
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, T5Config
 
 from src.dataset.dataset import CustomDataset
 from src.model.model import Model
@@ -26,13 +26,25 @@ class Exp_base:
         self.loss_func = self._get_weighted_loss_func()
 
     def _build_model(self):
+        t5_config = T5Config()
+        t5_config.decoder_start_token_id = 0
+        t5_config.num_layers = 1
+        t5_config.num_decoder_layers = 3
+        t5_config.output_hidden_states = True
+
+        gtformer_config = {
+            "n_layers": self.args.n_layers,
+            "d_model": self.args.d_model,
+            "n_heads": self.args.n_heads,
+            "d_ff": self.args.d_ff,
+            "dropout": self.args.dropout,
+            "time_steps": self.args.time_steps,
+            "n_locations": self.args.n_locations,
+        }
+
         model = Model(
-            self.args.n_layers,
-            self.args.d_model,
-            self.args.n_heads,
-            self.args.d_ff,
-            self.args.dropout,
-            self.args.n_locations,
+            gtformer_config,
+            t5_config,
         )
         model = model.to(self.device).to(self.dtype)
         return model
