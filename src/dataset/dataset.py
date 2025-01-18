@@ -17,12 +17,13 @@ class CustomDataset(Dataset):
         args: argparse.Namespace,
         logger: logging.Logger,
         tokenizer: transformers.PreTrainedTokenizer,
-        train_flag: bool = True,
+        flag: str = "train",
     ):
         self.args = args
         self.logger = logger
         self.tokenizer = tokenizer
-        self.train_flag = train_flag
+        type_dict = {"train": 0, "val": 1, "test": 2}
+        self.type = type_dict[flag]
         self.__load_data__()
 
     def __len__(self) -> int:
@@ -52,12 +53,13 @@ class CustomDataset(Dataset):
         st_maps = st_maps.reshape(st_maps.shape[0], st_maps.shape[1], -1)
         labels = data["labels"]
 
-        if self.train_flag:
-            self.st_maps = st_maps[: int(0.9 * len(st_maps))]
-            labels = labels[: int(0.9 * len(labels))]
-        else:
-            self.st_maps = st_maps[int(0.9 * len(st_maps)) :]
-            labels = labels[int(0.9 * len(labels)) :]
+        border_left_list = [0, int(0.8 * len(st_maps)), int(0.9 * len(st_maps))]
+        border_right_list = [int(0.8 * len(st_maps)), int(0.9 * len(st_maps)), len(st_maps)]
+        border_left = border_left_list[self.type]
+        border_right = border_right_list[self.type]
+
+        self.st_maps = st_maps[border_left:border_right]
+        labels = labels[border_left:border_right]
 
         labels = ["<pad>" + label for label in labels]
         tokenized_labels = self.tokenizer.batch_encode_plus(

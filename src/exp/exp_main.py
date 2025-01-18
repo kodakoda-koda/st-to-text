@@ -15,8 +15,8 @@ from src.utils.exp_utils import compute_score
 
 class Exp_main(Exp_base):
     def train(self):
-        train_loader = self._get_dataloader(train_flag=True)
-        val_loader = self._get_dataloader(train_flag=False)
+        train_loader = self._get_dataloader(flag="train")
+        val_loader = self._get_dataloader(flag="val")
 
         optimizer = AdamW(self.model.parameters(), lr=self.args.lr)
         scheduler = get_cosine_schedule_with_warmup(
@@ -105,7 +105,7 @@ class Exp_main(Exp_base):
         self.writer.close()
 
     def test(self):
-        test_loader = self._get_dataloader(train_flag=False)
+        test_loader = self._get_dataloader(flag="test")
 
         self.model.load_state_dict(torch.load(self.args.output_dir + f"{self.args.job_id}/model.pth"))
         test_score, generated_text = self._eval(test_loader)

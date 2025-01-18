@@ -55,8 +55,9 @@ class Exp_base:
         tokenizer.add_tokens(AddedToken("\n", normalized=False))
         return tokenizer
 
-    def _get_dataloader(self, train_flag: bool):
-        dataset = CustomDataset(self.args, self.logger, self.tokenizer, train_flag)
+    def _get_dataloader(self, flag: str):
+        dataset = CustomDataset(self.args, self.logger, self.tokenizer, flag)
+        train_flag = flag == "train"
         batch_size = self.args.train_batch_size if train_flag else self.args.eval_batch_size
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=train_flag)
         return dataloader
