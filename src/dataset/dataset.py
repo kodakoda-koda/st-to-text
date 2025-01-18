@@ -1,6 +1,6 @@
 import argparse
-import logging
 import json
+import logging
 import os
 
 import numpy as np
@@ -40,7 +40,11 @@ class CustomDataset(Dataset):
         if not os.path.exists(self.args.data_dir + "data.json"):
             self.logger.info("Creating data...")
             create_data(
-                self.args.time_range, self.args.max_fluc_range, self.args.n_data, self.args.map_size, self.args.data_dir
+                self.args.time_range,
+                self.args.max_fluc_range,
+                self.args.n_data,
+                self.args.map_size,
+                self.args.data_dir,
             )
 
         data = json.load(open(self.args.data_dir + "data.json", "r"))

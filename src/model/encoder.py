@@ -31,16 +31,32 @@ class GTformer(nn.Module):
 
 
 class GTformer_block(nn.Module):
-    def __init__(self, d_model: int, n_heads: int, d_ff: int, dropout: float, time_steps: int, n_locations: int):
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        d_ff: int,
+        dropout: float,
+        time_steps: int,
+        n_locations: int,
+    ):
         super(GTformer_block, self).__init__()
         self.t_emb = TemporalEmbedding(n_locations, time_steps, d_model)
         self.s_emb = SpatialEmbedding(time_steps, d_model)
 
         self.t_transformer = TransformerEncoderLayer(
-            d_model=d_model, nhead=n_heads, dim_feedforward=d_ff, dropout=dropout, batch_first=True
+            d_model=d_model,
+            nhead=n_heads,
+            dim_feedforward=d_ff,
+            dropout=dropout,
+            batch_first=True,
         )
         self.s_transformer = TransformerEncoderLayer(
-            d_model=d_model, nhead=n_heads, dim_feedforward=d_ff, dropout=dropout, batch_first=True
+            d_model=d_model,
+            nhead=n_heads,
+            dim_feedforward=d_ff,
+            dropout=dropout,
+            batch_first=True,
         )
 
         self.t_out = nn.Linear(d_model, n_locations)
