@@ -63,7 +63,7 @@ class Exp_base:
         return dataloader
 
     def _get_weighted_loss_func(self):
-        loss_weight = torch.ones(self.model.vocab_size)
+        loss_weight = torch.ones(self.model.t5.config.vocab_size)
 
         loss_weight[[6313, 6734, 2007, 993, 2667]] = 3.0  # decrease, increase, flat, peak, bottom
         loss_weight[[5386]] = 3.0  # increases

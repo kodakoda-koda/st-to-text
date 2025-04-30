@@ -145,7 +145,7 @@ class Exp_main(Exp_base):
                     encoder_input_ids=encoder_input_ids,
                     **gen_kwargs,
                 )
-                outputs = outputs.view(labels.shape[0], 10, -1)
+                outputs = outputs.sequences.view(labels.shape[0], 10, -1)
 
                 pred = [self.tokenizer.batch_decode(output, skip_special_tokens=True) for output in outputs]
                 ref = self.tokenizer.batch_decode(labels.detach().cpu().numpy(), skip_special_tokens=True)
