@@ -62,6 +62,7 @@ def main():
         stream=sys.stdout,
         level=logging.INFO,
         datefmt="%m/%d %H:%M",
+        force=True,
     )
     logger = logging.getLogger(__name__)
 
