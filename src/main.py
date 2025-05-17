@@ -1,5 +1,6 @@
 import argparse
 import logging
+import sys
 import warnings
 
 import transformers
@@ -58,6 +59,7 @@ def main():
     # Set logger
     logging.basicConfig(
         format="%(asctime)s - %(message)s",
+        stream=sys.stdout,
         level=logging.INFO,
         datefmt="%m/%d %H:%M",
     )
